@@ -1,20 +1,19 @@
 # XRichText
-A Rich Text for Android, support edit and preview, insert and delete image. 
+一个Android富文本类库，支持编辑和预览，支持插入和删除图片。
 
 ## 中文文档
 
-## ScreenShot
+## 截图
 
-## How to use
-#### import library
-xrichtext as a module.
-or
-copy xrichtext files to your app project.
+## 使用方式
+#### 作为类库
+把xrichtext作为一个module导入你的工程。
+把xrichtext中的文件拷贝到你的工程，可以在你的工程中建一个xrichtextming包名，并把文件拷贝进去。
 
-#### gradle dependencies
-support on later.
+#### gradle依赖
+稍后支持。
 
-## Thanks
+## 感谢
 https://github.com/zzhoujay/RichText
 
-## Other
+## 其他
