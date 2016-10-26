@@ -12,21 +12,21 @@
 ![笔记详情](http://img.blog.csdn.net/20161026140122507)
 
 ## 使用方式
-#### 作为类库
+### 作为类库
 把xrichtext作为一个module导入你的工程。
 把xrichtext中的文件拷贝到你的工程，可以在你的工程中建一个xrichtextming包名，并把文件拷贝进去。
 
-#### gradle依赖
+### gradle依赖
 稍后支持。
 
 ## 感谢
 本库在前人的基础上进行修改，感谢各位大神的辛苦劳作！
 参考了以下项目：
-https://github.com/xmuSistone/android-animate-RichEditor
-https://github.com/KDF5000/RichEditText
+- https://github.com/xmuSistone/android-animate-RichEditor
+- https://github.com/KDF5000/RichEditText
 
 ## 其他
-个人博客：http://www.sendtion.cn
-CSDN：http://blog.csdn.net/shuyou612
-GitHub：https://github.com/sendtion
-欢迎大家fork、star，也欢迎大家参与修改。
+- 个人博客：http://www.sendtion.cn
+- CSDN：http://blog.csdn.net/shuyou612
+- GitHub：https://github.com/sendtion
+- 欢迎大家fork、star，也欢迎大家参与修改。
