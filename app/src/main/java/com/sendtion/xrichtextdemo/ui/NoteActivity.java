@@ -1,7 +1,7 @@
 package com.sendtion.xrichtextdemo.ui;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -18,10 +18,22 @@ import com.sendtion.xrichtextdemo.bean.Note;
 import com.sendtion.xrichtextdemo.db.GroupDao;
 import com.sendtion.xrichtextdemo.db.NoteDao;
 import com.sendtion.xrichtextdemo.util.CommonUtil;
+import com.sendtion.xrichtextdemo.util.SDCardUtil;
 import com.sendtion.xrichtextdemo.util.StringUtils;
 
+import java.io.File;
 import java.util.List;
 
+import rx.Observable;
+import rx.Observer;
+import rx.Subscriber;
+import rx.Subscription;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
+/**
+ * 笔记详情
+ */
 public class NoteActivity extends BaseActivity {
 
     private TextView tv_note_title;//笔记标题
@@ -35,6 +47,9 @@ public class NoteActivity extends BaseActivity {
     private String myGroupName;
     private NoteDao noteDao;
     private GroupDao groupDao;
+
+    private ProgressDialog loadingDialog;
+    private Subscription subsLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,6 +84,10 @@ public class NoteActivity extends BaseActivity {
         noteDao = new NoteDao(this);
         groupDao = new GroupDao(this);
 
+        loadingDialog = new ProgressDialog(this);
+        loadingDialog.setMessage("数据加载中...");
+        loadingDialog.setCanceledOnTouchOutside(false);
+
         tv_note_title = (TextView) findViewById(R.id.tv_note_title);//标题
         tv_note_title.setTextIsSelectable(true);
         tv_note_content = (RichTextView) findViewById(R.id.tv_note_content);//内容
@@ -88,7 +107,9 @@ public class NoteActivity extends BaseActivity {
         tv_note_content.post(new Runnable() {
             @Override
             public void run() {
-                showEditData(myContent);
+                //showEditData(myContent);
+                tv_note_content.clearAllLayout();
+                showDataSync(myContent);
             }
         });
         tv_note_time.setText(note.getCreateTime());
@@ -98,25 +119,70 @@ public class NoteActivity extends BaseActivity {
     }
 
     /**
-     * 显示数据
+     * 异步方式显示数据
      * @param html
      */
-    private void showEditData(String html) {
-        tv_note_content.clearAllLayout();
-        List<String> textList = StringUtils.cutStringByImgTag(html);
-        for (int i = 0; i < textList.size(); i++) {
-            String text = textList.get(i);
-            if (text.contains("<img") && text.contains("src=")) {
-                String imagePath = StringUtils.getImgSrc(text);
-                Bitmap bmp = tv_note_content.getScaledBitmap(imagePath, tv_note_content.getWidth());
-                if (bmp != null){
-                    tv_note_content.addImageViewAtIndex(tv_note_content.getLastIndex(), bmp, imagePath);
+    private void showDataSync(final String html){
+        loadingDialog.show();
+
+        subsLoading = Observable.create(new Observable.OnSubscribe<String>() {
+            @Override
+            public void call(Subscriber<? super String> subscriber) {
+                showEditData(subscriber, html);
+            }
+        })
+        .onBackpressureBuffer()
+        .subscribeOn(Schedulers.io())//生产事件在io
+        .observeOn(AndroidSchedulers.mainThread())//消费事件在UI线程
+        .subscribe(new Observer<String>() {
+            @Override
+            public void onCompleted() {
+                loadingDialog.dismiss();
+            }
+
+            @Override
+            public void onError(Throwable e) {
+                loadingDialog.dismiss();
+                e.printStackTrace();
+                showToast("解析错误：图片不存在或已损坏");
+            }
+
+            @Override
+            public void onNext(String text) {
+                if (text.contains(SDCardUtil.getPictureDir())){
+                    tv_note_content.addImageViewAtIndex(tv_note_content.getLastIndex(), text);
                 } else {
                     tv_note_content.addTextViewAtIndex(tv_note_content.getLastIndex(), text);
                 }
-            } else {
-                tv_note_content.addTextViewAtIndex(tv_note_content.getLastIndex(), text);
             }
+        });
+
+    }
+
+    /**
+     * 显示数据
+     * @param html
+     */
+    private void showEditData(Subscriber<? super String> subscriber, String html) {
+        try {
+            List<String> textList = StringUtils.cutStringByImgTag(html);
+            for (int i = 0; i < textList.size(); i++) {
+                String text = textList.get(i);
+                if (text.contains("<img") && text.contains("src=")) {
+                    String imagePath = StringUtils.getImgSrc(text);
+                    if (new File(imagePath).exists()) {
+                        subscriber.onNext(imagePath);
+                    } else {
+                        showToast("图片"+1+"已丢失，请重新插入！");
+                    }
+                } else {
+                    subscriber.onNext(text);
+                }
+            }
+            subscriber.onCompleted();
+        } catch (Exception e){
+            e.printStackTrace();
+            subscriber.onError(e);
         }
     }
 

@@ -12,6 +12,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.jcodecraeer.xrecyclerview.ProgressStyle;
 import com.jcodecraeer.xrecyclerview.XRecyclerView;
 import com.sendtion.xrichtextdemo.R;
 import com.sendtion.xrichtextdemo.adapter.MyNoteListAdapter;
@@ -72,11 +73,10 @@ public class MainActivity extends BaseActivity {
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);//竖向列表
         rv_list_main.setLayoutManager(layoutManager);
 
-        rv_list_main.setLoadingMoreEnabled(false);//禁止上拉加载
-        rv_list_main.setPullRefreshEnabled(false);//禁止下拉刷新
-        //rv_list_question.setRefreshProgressStyle(ProgressStyle.BallSpinFadeLoader);
-        //rv_list_main.setLoadingMoreProgressStyle(ProgressStyle.BallRotate);
-        //rv_list_question.setArrowImageView(R.drawable.icon_arrow_downgrey);
+        rv_list_main.setLoadingMoreEnabled(true);//开启上拉加载
+        rv_list_main.setPullRefreshEnabled(true);//开启下拉刷新
+        rv_list_main.setRefreshProgressStyle(ProgressStyle.SquareSpin);
+        rv_list_main.setLoadingMoreProgressStyle(ProgressStyle.BallScale);
         /****************** 设置XRecyclerView属性 **************************/
 
         mNoteListAdapter = new MyNoteListAdapter();
@@ -124,12 +124,22 @@ public class MainActivity extends BaseActivity {
 
         @Override
         public void onRefresh() {//下拉刷新
-
+            rv_list_main.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    rv_list_main.refreshComplete();
+                }
+            }, 1000);
         }
 
         @Override
         public void onLoadMore() {//上拉加载
-
+            rv_list_main.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    rv_list_main.loadMoreComplete();
+                }
+            }, 1000);
         }
     }
 

@@ -13,7 +13,6 @@ import android.widget.ImageView;
 public class DataImageView extends ImageView {
 
     private String absolutePath;
-
     private Bitmap bitmap;
 
     public DataImageView(Context context) {

@@ -1,32 +1,29 @@
 package com.sendtion.xrichtext;
 
-import android.animation.LayoutTransition;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+
 /**
  * Created by sendtion on 2016/6/24.
+ * 显示富文本
  */
 public class RichTextView extends ScrollView {
     private static final int EDIT_PADDING = 10; // edittext常规padding是10dp
-    //private static final int EDIT_FIRST_PADDING_TOP = 10; // 第一个EditText的paddingTop值
 
     private int viewTagIndex = 1; // 新生的view都会打一个tag，对每个view来说，这个tag是唯一的。
     private LinearLayout allLayout; // 这个是所有子view的容器，scrollView内部的唯一一个ViewGroup
     private LayoutInflater inflater;
-    private TextView lastFocusText; // 最近被聚焦的TextView
-    private LayoutTransition mTransitioner; // 只在图片View添加或remove时，触发transition动画
     private int editNormalPadding = 0; //
-    private int disappearingImageIndex = 0;
 
     public RichTextView(Context context) {
         this(context, null);
@@ -44,7 +41,6 @@ public class RichTextView extends ScrollView {
         allLayout = new LinearLayout(context);
         allLayout.setOrientation(LinearLayout.VERTICAL);
         //allLayout.setBackgroundColor(Color.WHITE);//去掉背景
-        //setupLayoutTransitions();//禁止载入动画
         LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT);
         allLayout.setPadding(50,15,50,15);//设置间距，防止生成图片时文字太靠边
@@ -55,7 +51,6 @@ public class RichTextView extends ScrollView {
         //editNormalPadding = dip2px(EDIT_PADDING);
         TextView firstText = createTextView("没有内容", dip2px(context, EDIT_PADDING));
         allLayout.addView(firstText, firstEditParam);
-        lastFocusText = firstText;
     }
 
     public int dip2px(Context context, float dipValue) {
@@ -114,22 +109,20 @@ public class RichTextView extends ScrollView {
         TextView textView = createTextView("", EDIT_PADDING);
         textView.setText(editStr);
 
-        // 请注意此处，EditText添加、或删除不触动Transition动画
-        //allLayout.setLayoutTransition(null);
         allLayout.addView(textView, index);
-        //allLayout.setLayoutTransition(mTransitioner); // remove之后恢复transition动画
     }
 
     /**
      * 在特定位置添加ImageView
      */
-    public void addImageViewAtIndex(final int index, Bitmap bmp,
-                                    String imagePath) {
+    public void addImageViewAtIndex(final int index, String imagePath) {
+        Bitmap bmp = BitmapFactory.decodeFile(imagePath);
+
         final RelativeLayout imageLayout = createImageLayout();
-        DataImageView imageView = (DataImageView) imageLayout
-                .findViewById(R.id.edit_imageView);
-        imageView.setImageBitmap(bmp);
-        imageView.setBitmap(bmp);
+        DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
+        Glide.with(getContext()).load(imagePath).crossFade().centerCrop().into(imageView);
+        //imageView.setImageBitmap(bmp);//这里改用Glide加载图片
+        //imageView.setBitmap(bmp);//这句去掉，保留下面的图片地址即可，优化图片占用
         imageView.setAbsolutePath(imagePath);
 
         // 调整imageView的高度
@@ -139,7 +132,6 @@ public class RichTextView extends ScrollView {
         lp.bottomMargin = 10;
         imageView.setLayoutParams(lp);
 
-        // onActivityResult无法触发动画，此处post处理
         allLayout.addView(imageLayout, index);
     }
 
@@ -158,33 +150,6 @@ public class RichTextView extends ScrollView {
         options.inJustDecodeBounds = false;
         options.inSampleSize = sampleSize;
         return BitmapFactory.decodeFile(filePath, options);
-    }
-
-    /**
-     * 初始化transition动画
-     */
-    private void setupLayoutTransitions() {
-        mTransitioner = new LayoutTransition();
-        //allLayout.setLayoutTransition(mTransitioner);
-        mTransitioner.addTransitionListener(new LayoutTransition.TransitionListener() {
-
-            @Override
-            public void startTransition(LayoutTransition transition,
-                                        ViewGroup container, View view, int transitionType) {
-
-            }
-
-            @Override
-            public void endTransition(LayoutTransition transition,
-                                      ViewGroup container, View view, int transitionType) {
-                if (!transition.isRunning()
-                        && transitionType == LayoutTransition.CHANGE_DISAPPEARING) {
-                    // transition动画结束，合并EditText
-                    // mergeEditText();
-                }
-            }
-        });
-        mTransitioner.setDuration(300);
     }
 
 }
