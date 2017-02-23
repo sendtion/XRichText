@@ -27,7 +27,7 @@ allprojects {
 }
 
 dependencies {
-    compile 'com.github.sendtion:XRichText:1.0'
+    compile 'com.github.sendtion:XRichText:1.1'
 }
 ```
 
@@ -120,6 +120,16 @@ protected void showEditData(String content) {
 ```
 
 ### 具体的使用方式，请参考Demo代码。
+
+### 更新历史
+#### v1.1
+- 优化内存占用，解决内存溢出问题
+- 结合RxJava（参考Demo）
+- 支持连续插入多张图片（参考Demo）
+- 解决插入图片导致的卡顿和崩溃
+
+#### v1.0
+- 初次提交
 
 ## 感谢
 本库在前人的基础上进行修改，感谢各位大神的辛苦劳作！
