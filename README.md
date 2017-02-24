@@ -44,7 +44,7 @@ dependencies {
 <dependency>
     <groupId>com.github.sendtion</groupId>
     <artifactId>XRichText</artifactId>
-    <version>1.0</version>
+    <version>1.1</version>
 </dependency>
 ```
 
@@ -124,12 +124,15 @@ protected void showEditData(String content) {
 ### 更新历史
 #### v1.1
 - 优化内存占用，解决内存溢出问题
-- 结合RxJava（参考Demo）
-- 支持连续插入多张图片（参考Demo）
+- 结合RxJava使用（参考Demo）
+- 支持连续插入多张图片不卡顿（参考Demo）
 - 解决插入图片导致的卡顿和崩溃
 
 #### v1.0
 - 初次提交
+- 实现插入图片
+- 实现图文混排
+- 实现编辑和保存
 
 ## 感谢
 本库在前人的基础上进行修改，感谢各位大神的辛苦劳作！
