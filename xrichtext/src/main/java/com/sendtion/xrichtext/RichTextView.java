@@ -43,7 +43,7 @@ public class RichTextView extends ScrollView {
         //allLayout.setBackgroundColor(Color.WHITE);//去掉背景
         LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT,
                 LayoutParams.WRAP_CONTENT);
-        allLayout.setPadding(50,15,50,15);//设置间距，防止生成图片时文字太靠边
+        allLayout.setPadding(50, 15, 50, 15);//设置间距，防止生成图片时文字太靠边
         addView(allLayout, layoutParams);
 
         LinearLayout.LayoutParams firstEditParam = new LinearLayout.LayoutParams(
@@ -61,15 +61,16 @@ public class RichTextView extends ScrollView {
     /**
      * 清除所有的view
      */
-    public void clearAllLayout(){
+    public void clearAllLayout() {
         allLayout.removeAllViews();
     }
 
     /**
      * 获得最后一个子view的位置
+     *
      * @return
      */
-    public int getLastIndex(){
+    public int getLastIndex() {
         int lastEditIndex = allLayout.getChildCount();
         return lastEditIndex;
     }
@@ -100,10 +101,8 @@ public class RichTextView extends ScrollView {
     /**
      * 在特定位置插入EditText
      *
-     * @param index
-     *            位置
-     * @param editStr
-     *            EditText显示的文字
+     * @param index   位置
+     * @param editStr EditText显示的文字
      */
     public void addTextViewAtIndex(final int index, CharSequence editStr) {
         TextView textView = createTextView("", EDIT_PADDING);
@@ -126,7 +125,12 @@ public class RichTextView extends ScrollView {
         imageView.setAbsolutePath(imagePath);
 
         // 调整imageView的高度
-        int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+        int imageHeight = 500;
+        if (bmp != null) {
+            imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+            // 使用之后，还是回收掉吧
+            bmp.recycle();
+        }
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT, imageHeight);
         lp.bottomMargin = 10;
@@ -138,8 +142,7 @@ public class RichTextView extends ScrollView {
     /**
      * 根据view的宽度，动态缩放bitmap尺寸
      *
-     * @param width
-     *            view的宽度
+     * @param width view的宽度
      */
     public Bitmap getScaledBitmap(String filePath, int width) {
         BitmapFactory.Options options = new BitmapFactory.Options();
