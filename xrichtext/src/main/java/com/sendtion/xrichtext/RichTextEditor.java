@@ -302,11 +302,15 @@ public class RichTextEditor extends ScrollView {
         opt.inJustDecodeBounds = true;//只解析边缘，有效防止oom
         Bitmap bmp = BitmapFactory.decodeFile(imagePath, opt);
         int imageHeight = 500;
-        if (bmp != null) {
-            imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
-            bmp.recycle();
-            bmp = null;
-            System.gc();
+        try {
+            if (bmp != null) {
+                imageHeight = allLayout.getWidth() * opt.outHeight / opt.outWidth;
+                bmp.recycle();
+                bmp = null;
+                System.gc();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         // TODO: 17/3/1 调整图片高度，这里是否有必要，如果出现微博长图，可能会很难看
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
