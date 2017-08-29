@@ -303,12 +303,10 @@ public class RichTextEditor extends ScrollView {
         Bitmap bmp = BitmapFactory.decodeFile(imagePath, opt);
         int imageHeight = 500;
         try {
-            if (bmp != null) {
                 imageHeight = allLayout.getWidth() * opt.outHeight / opt.outWidth;
                 bmp.recycle();
                 bmp = null;
                 System.gc();
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
