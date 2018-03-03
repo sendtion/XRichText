@@ -297,11 +297,18 @@ public class RichTextEditor extends ScrollView {
         imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);//裁剪剧中
 
         // 调整imageView的高度，根据宽度来调整高度
-        Bitmap bmp = BitmapFactory.decodeFile(imagePath);
+        BitmapFactory.Options opt = new BitmapFactory.Options();
+        // 这个isjustdecodebounds很重要
+        opt.inJustDecodeBounds = true;//只解析边缘，有效防止oom
+        Bitmap bmp = BitmapFactory.decodeFile(imagePath, opt);
         int imageHeight = 500;
-        if (bmp != null) {
-            imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
-            bmp.recycle();
+        try {
+                imageHeight = allLayout.getWidth() * opt.outHeight / opt.outWidth;
+                bmp.recycle();
+                bmp = null;
+                System.gc();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         // TODO: 17/3/1 调整图片高度，这里是否有必要，如果出现微博长图，可能会很难看
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
