@@ -1,8 +1,8 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion "25.0.1"
+    compileSdkVersion 26
+    buildToolsVersion "26.0.2"
     defaultConfig {
         applicationId "com.sendtion.xrichtext"
         minSdkVersion 14
@@ -20,26 +20,26 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    testCompile 'junit:junit:4.12'
-    compile project(':xrichtext')
+    testImplementation 'junit:junit:4.12'
+    implementation project(':xrichtext')
 
-    compile 'com.android.support:appcompat-v7:25.0.1'
-    compile 'com.android.support:design:25.0.1'
-    compile 'com.android.support:cardview-v7:25.0.1'
+    implementation 'com.android.support:appcompat-v7:26.1.0'
+    implementation 'com.android.support:design:26.1.0'
+    implementation 'com.android.support:cardview-v7:26.1.0'
 
     //recyclerview列表 https://github.com/jianghejie/XRecyclerView
-    compile 'com.jcodecraeer:xrecyclerview:1.3.2'
+    implementation 'com.jcodecraeer:xrecyclerview:1.3.2'
     //图片选择器 https://github.com/donglua/PhotoPicker
-    compile 'me.iwf.photopicker:PhotoPicker:0.8.4@aar'
+    implementation 'me.iwf.photopicker:PhotoPicker:0.8.4@aar'
     //图片加载框架 https://github.com/bumptech/glide
-    //compile 'com.github.bumptech.glide:glide:3.7.0'
+    implementation 'com.github.bumptech.glide:glide:3.7.0'
     //旧版本动画兼容库
-    compile 'com.nineoldandroids:library:2.4.0'
+    implementation 'com.nineoldandroids:library:2.4.0'
 
-    compile 'io.reactivex:rxjava:1.1.0'
-    compile 'io.reactivex:rxandroid:1.1.0'
+    implementation 'io.reactivex:rxjava:1.3.0'
+    implementation 'io.reactivex:rxandroid:1.2.1'
 }
