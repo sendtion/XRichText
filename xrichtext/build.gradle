@@ -30,5 +30,5 @@ dependencies {
     testImplementation 'junit:junit:4.12'
 
     //图片加载框架 https://github.com/bumptech/glide
-    //implementation 'com.github.bumptech.glide:glide:3.7.0'
+    implementation 'com.github.bumptech.glide:glide:3.7.0'
 }

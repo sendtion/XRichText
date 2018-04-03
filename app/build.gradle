@@ -36,7 +36,7 @@ dependencies {
     //图片选择器 https://github.com/donglua/PhotoPicker
     implementation 'me.iwf.photopicker:PhotoPicker:0.8.4@aar'
     //图片加载框架 https://github.com/bumptech/glide
-    implementation 'com.github.bumptech.glide:glide:3.7.0'
+    //implementation 'com.github.bumptech.glide:glide:3.7.0'
     //旧版本动画兼容库
     implementation 'com.nineoldandroids:library:2.4.0'
 
