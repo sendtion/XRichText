@@ -31,7 +31,7 @@ allprojects {
 }
 
 dependencies {
-    compile 'com.github.sendtion:XRichText:1.1'
+    compile 'com.github.sendtion:XRichText:1.2'
 }
 ```
 
