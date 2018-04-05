@@ -4,15 +4,17 @@
 一个Android富文本类库，支持图文混排，支持编辑和预览，支持插入和删除图片。
 
 ### 实现的原理：
-- 使用ScrollView作为最外层布局，里面填充TextView和ImageView。
-- 删除的时候，根据光标的位置，删除TextView和ImageView。
+- 使用ScrollView作为最外层布局包含LineaLayout，里面填充TextView和ImageView。
+- 删除的时候，根据光标的位置，删除TextView和ImageView，文本自动合并。
 - 生成的数据为list集合，可自定义处理数据格式。
 
 ## 截图预览
-<img src="http://ww3.sinaimg.cn/large/6c6cd56djw1fax2yzxqqvj20u01hcmze.jpg" width = "400" height = "650" />
-<img src="http://ww3.sinaimg.cn/large/6c6cd56djw1fax2wp3ngbj20u01hcar0.jpg" width = "400" height = "650" />
-<img src="http://ww3.sinaimg.cn/large/6c6cd56djw1fax2u2j24jj20u01hc41b.jpg" width = "400" height = "650" />
-<img src="http://ww3.sinaimg.cn/large/6c6cd56djw1fax2xcszo1j20u01hc4o9.jpg" width = "400" height = "650" />
+
+![笔记列表](http://p695w3yko.bkt.clouddn.com/18-4-5/19166796.jpg)
+![文字笔记详情](http://p695w3yko.bkt.clouddn.com/18-4-5/57787376.jpg)
+![连续插入多图](http://p695w3yko.bkt.clouddn.com/18-4-5/72572379.jpg)
+![编辑笔记](http://p695w3yko.bkt.clouddn.com/18-4-5/55920273.jpg)
+![图片笔记详情](http://p695w3yko.bkt.clouddn.com/18-4-5/78527283.jpg)
 
 ## 使用方式
 #### 1. 作为module导入
@@ -31,23 +33,6 @@ allprojects {
 dependencies {
     compile 'com.github.sendtion:XRichText:1.1'
 }
-```
-
-#### 3. Maven方式
-
-```
-<repositories>
-    <repository>
-        <id>jitpack.io</id>
-        <url>https://jitpack.io</url>
-    </repository>
-</repositories>
-
-<dependency>
-    <groupId>com.github.sendtion</groupId>
-    <artifactId>XRichText</artifactId>
-    <version>1.1</version>
-</dependency>
 ```
 
 ## 具体使用
@@ -124,21 +109,28 @@ protected void showEditData(String content) {
 ### 具体的使用方式，请参考Demo代码。
 
 ### 更新历史
-#### v1.1
+
+#### v1.2  2018.04.05
+- 编辑笔记时，使用接口回调在外部处理图片的删除操作，可以自行实现删除本地图片还是网络图片
+- 实现网络图片的加载，插入图片时，可以传入本地图片SD卡路径，也可以传入网络图片地址
+- 在新建或编辑笔记时，连续多张图片之间插入输入框，方便在图片间输入文本内容
+- 修复在文件中间插入图片时，导致的后面文字丢失的问题
+- 修复连续插入多张图片时，会出现图片倒序插入的问题
+
+#### v1.1	2017.03.27
 - 优化内存占用，解决内存溢出问题
 - 结合RxJava使用（参考Demo）
 - 支持连续插入多张图片不卡顿（参考Demo）
 - 解决插入图片导致的卡顿和崩溃
 
-#### v1.0
+#### v1.0	2016.10.26
 - 初次提交
 - 实现插入图片
 - 实现图文混排
 - 实现编辑和保存
 
 ## 感谢
-本库在前人的基础上进行修改，感谢各位大神的辛苦劳作！
-参考了以下项目：
+本库参考了以下项目，感谢各位大神的辛苦劳作！
 - https://github.com/xmuSistone/android-animate-RichEditor
 - https://github.com/KDF5000/RichEditText
 
