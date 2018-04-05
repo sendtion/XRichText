@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,6 +36,7 @@ import rx.schedulers.Schedulers;
  * 笔记详情
  */
 public class NoteActivity extends BaseActivity {
+    private static final String TAG = "NoteActivity";
 
     private TextView tv_note_title;//笔记标题
     private RichTextView tv_note_content;//笔记内容
@@ -87,6 +89,7 @@ public class NoteActivity extends BaseActivity {
         loadingDialog = new ProgressDialog(this);
         loadingDialog.setMessage("数据加载中...");
         loadingDialog.setCanceledOnTouchOutside(false);
+        loadingDialog.show();
 
         tv_note_title = (TextView) findViewById(R.id.tv_note_title);//标题
         tv_note_title.setTextIsSelectable(true);
@@ -123,7 +126,6 @@ public class NoteActivity extends BaseActivity {
      * @param html
      */
     private void showDataSync(final String html){
-        loadingDialog.show();
 
         subsLoading = Observable.create(new Observable.OnSubscribe<String>() {
             @Override
@@ -137,20 +139,26 @@ public class NoteActivity extends BaseActivity {
         .subscribe(new Observer<String>() {
             @Override
             public void onCompleted() {
-                loadingDialog.dismiss();
+                if (loadingDialog != null){
+                    loadingDialog.dismiss();
+                }
             }
 
             @Override
             public void onError(Throwable e) {
-                loadingDialog.dismiss();
-                e.printStackTrace();
+                if (loadingDialog != null){
+                    loadingDialog.dismiss();
+                }
                 showToast("解析错误：图片不存在或已损坏");
+                Log.e(TAG, "onError: " + e.getMessage());
             }
 
             @Override
             public void onNext(String text) {
-                if (text.contains(SDCardUtil.getPictureDir())){
-                    tv_note_content.addImageViewAtIndex(tv_note_content.getLastIndex(), text);
+                if (text.contains("<img") && text.contains("src=")) {
+                    //imagePath可能是本地路径，也可能是网络地址
+                    String imagePath = StringUtils.getImgSrc(text);
+                    tv_note_content.addImageViewAtIndex(tv_note_content.getLastIndex(), imagePath);
                 } else {
                     tv_note_content.addTextViewAtIndex(tv_note_content.getLastIndex(), text);
                 }
@@ -168,16 +176,7 @@ public class NoteActivity extends BaseActivity {
             List<String> textList = StringUtils.cutStringByImgTag(html);
             for (int i = 0; i < textList.size(); i++) {
                 String text = textList.get(i);
-                if (text.contains("<img") && text.contains("src=")) {
-                    String imagePath = StringUtils.getImgSrc(text);
-                    if (new File(imagePath).exists()) {
-                        subscriber.onNext(imagePath);
-                    } else {
-                        showToast("图片"+1+"已丢失，请重新插入！");
-                    }
-                } else {
-                    subscriber.onNext(text);
-                }
+                subscriber.onNext(text);
             }
             subscriber.onCompleted();
         } catch (Exception e){

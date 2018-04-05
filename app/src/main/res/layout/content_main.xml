@@ -14,7 +14,7 @@
     tools:context="com.sendtion.xrichtextdemo.ui.MainActivity"
     tools:showIn="@layout/activity_main">
 
-    <com.jcodecraeer.xrecyclerview.XRecyclerView
+    <android.support.v7.widget.RecyclerView
         android:id="@+id/rv_list_main"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />

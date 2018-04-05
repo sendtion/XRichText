@@ -9,9 +9,8 @@ import android.view.inputmethod.InputConnectionWrapper;
 import android.widget.EditText;
 
 /**
- * 这个是从stackOverFlow上面找到的解决方案，主要用途是处理软键盘回删按钮backSpace时回调OnKeyListener
+ * 可删除的EditText，主要用途是处理软键盘回删按钮backSpace时回调OnKeyListener
  *
- * @author xmuSistone
  */
 public class DeletableEditText extends EditText {
 

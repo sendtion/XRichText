@@ -8,7 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 
 import com.sendtion.xrichtextdemo.bean.Note;
-import com.sendtion.xrichtextdemo.util.DateUtils;
+import com.sendtion.xrichtextdemo.util.CommonUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -96,8 +96,8 @@ public class NoteDao {
             stat.bindLong(5, note.getType());
             stat.bindString(6, note.getBgColor());
             stat.bindLong(7, note.getIsEncrypt());
-            stat.bindString(8, DateUtils.date2string(new Date()));
-            stat.bindString(9, DateUtils.date2string(new Date()));
+            stat.bindString(8, CommonUtil.date2string(new Date()));
+            stat.bindString(9, CommonUtil.date2string(new Date()));
             ret = stat.executeInsert();
             db.setTransactionSuccessful();
         } catch (SQLException e) {
@@ -125,7 +125,7 @@ public class NoteDao {
         values.put("n_type", note.getType());
         values.put("n_bg_color", note.getBgColor());
         values.put("n_encrypt", note.getIsEncrypt());
-        values.put("n_update_time", DateUtils.date2string(new Date()));
+        values.put("n_update_time", CommonUtil.date2string(new Date()));
         db.update("db_note", values, "n_id=?", new String[]{note.getId()+""});
         db.close();
     }

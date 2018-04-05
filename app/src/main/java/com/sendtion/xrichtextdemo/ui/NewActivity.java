@@ -15,19 +15,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.sendtion.xrichtext.RichTextEditor;
-import com.sendtion.xrichtext.SDCardUtil;
 import com.sendtion.xrichtextdemo.R;
 import com.sendtion.xrichtextdemo.bean.Group;
 import com.sendtion.xrichtextdemo.bean.Note;
 import com.sendtion.xrichtextdemo.db.GroupDao;
 import com.sendtion.xrichtextdemo.db.NoteDao;
 import com.sendtion.xrichtextdemo.util.CommonUtil;
-import com.sendtion.xrichtextdemo.util.DateUtils;
 import com.sendtion.xrichtextdemo.util.ImageUtils;
-import com.sendtion.xrichtextdemo.util.ScreenUtils;
+import com.sendtion.xrichtextdemo.util.SDCardUtil;
 import com.sendtion.xrichtextdemo.util.StringUtils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -43,7 +40,8 @@ import rx.schedulers.Schedulers;
 /**
  * 新建笔记
  */
-public class NewActivity extends BaseActivity {
+public class NewActivity extends BaseActivity implements RichTextEditor.OnDeleteImageListener {
+    private static final String TAG = "NewActivity";
 
     private EditText et_new_title;
     private RichTextEditor et_new_content;
@@ -102,16 +100,12 @@ public class NewActivity extends BaseActivity {
         noteDao = new NoteDao(this);
         note = new Note();
 
-        screenWidth = ScreenUtils.getScreenWidth(this);
-        screenHeight = ScreenUtils.getScreenHeight(this);
+        screenWidth = CommonUtil.getScreenWidth(this);
+        screenHeight = CommonUtil.getScreenHeight(this);
 
         insertDialog = new ProgressDialog(this);
         insertDialog.setMessage("正在插入图片...");
         insertDialog.setCanceledOnTouchOutside(false);
-
-        loadingDialog = new ProgressDialog(this);
-        loadingDialog.setMessage("图片解析中...");
-        loadingDialog.setCanceledOnTouchOutside(false);
 
         et_new_title = (EditText) findViewById(R.id.et_new_title);
         et_new_content = (RichTextEditor) findViewById(R.id.et_new_content);
@@ -129,6 +123,11 @@ public class NewActivity extends BaseActivity {
             myNoteTime = note.getCreateTime();
             Group group = groupDao.queryGroupById(note.getGroupId());
             myGroupName = group.getName();
+
+            loadingDialog = new ProgressDialog(this);
+            loadingDialog.setMessage("数据加载中...");
+            loadingDialog.setCanceledOnTouchOutside(false);
+            loadingDialog.show();
 
             setTitle("编辑笔记");
             tv_new_time.setText(note.getCreateTime());
@@ -148,7 +147,7 @@ public class NewActivity extends BaseActivity {
                 myGroupName = "默认笔记";
             }
             tv_new_group.setText(myGroupName);
-            myNoteTime = DateUtils.date2string(new Date());
+            myNoteTime = CommonUtil.date2string(new Date());
             tv_new_time.setText(myNoteTime);
         }
 
@@ -159,7 +158,6 @@ public class NewActivity extends BaseActivity {
      * @param html
      */
     private void showDataSync(final String html){
-        loadingDialog.show();
 
         subsLoading = Observable.create(new Observable.OnSubscribe<String>() {
             @Override
@@ -173,19 +171,29 @@ public class NewActivity extends BaseActivity {
         .subscribe(new Observer<String>() {
             @Override
             public void onCompleted() {
-                loadingDialog.dismiss();
+                if (loadingDialog != null){
+                    loadingDialog.dismiss();
+                }
+                //在图片全部插入完毕后，再插入一个EditText，防止最后一张图片后无法插入文字
+                et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), "");
             }
 
             @Override
             public void onError(Throwable e) {
-                loadingDialog.dismiss();
+                if (loadingDialog != null){
+                    loadingDialog.dismiss();
+                }
                 showToast("解析错误：图片不存在或已损坏");
             }
 
             @Override
             public void onNext(String text) {
-                if (text.contains(SDCardUtil.getPictureDir())){
-                    et_new_content.addImageViewAtIndex(et_new_content.getLastIndex(), text);
+                if (text.contains("<img") && text.contains("src=")) {
+                    //imagePath可能是本地路径，也可能是网络地址
+                    String imagePath = StringUtils.getImgSrc(text);
+                    //插入空的EditText，以便在图片前后插入文字
+                    et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), "");
+                    et_new_content.addImageViewAtIndex(et_new_content.getLastIndex(), imagePath);
                 } else {
                     et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), text);
                 }
@@ -201,17 +209,7 @@ public class NewActivity extends BaseActivity {
             List<String> textList = StringUtils.cutStringByImgTag(html);
             for (int i = 0; i < textList.size(); i++) {
                 String text = textList.get(i);
-                if (text.contains("<img")) {
-                    String imagePath = StringUtils.getImgSrc(text);
-                    if (new File(imagePath).exists()) {
-                        subscriber.onNext(imagePath);
-                    } else {
-                        showToast("图片"+i+"已丢失，请重新插入！");
-                    }
-                } else {
-                    subscriber.onNext(text);
-                }
-
+                subscriber.onNext(text);
             }
             subscriber.onCompleted();
         }catch (Exception e){
@@ -229,11 +227,8 @@ public class NewActivity extends BaseActivity {
         for (RichTextEditor.EditData itemData : editList) {
             if (itemData.inputStr != null) {
                 content.append(itemData.inputStr);
-                //Log.d("RichEditor", "commit inputStr=" + itemData.inputStr);
             } else if (itemData.imagePath != null) {
                 content.append("<img src=\"").append(itemData.imagePath).append("\"/>");
-                //Log.d("RichEditor", "commit imgePath=" + itemData.imagePath);
-                //imageList.add(itemData.imagePath);
             }
         }
         return content.toString();
@@ -265,7 +260,7 @@ public class NewActivity extends BaseActivity {
             note.setType(2);
             note.setBgColor("#FFFFFF");
             note.setIsEncrypt(0);
-            note.setCreateTime(DateUtils.date2string(new Date()));
+            note.setCreateTime(CommonUtil.date2string(new Date()));
             if (flag == 0 ) {//新建笔记
                 if (noteTitle.length() == 0 && noteContent.length() == 0) {
                     if (!isBackground){
@@ -359,8 +354,8 @@ public class NewActivity extends BaseActivity {
             public void call(Subscriber<? super String> subscriber) {
                 try{
                     et_new_content.measure(0, 0);
-                    int width = ScreenUtils.getScreenWidth(NewActivity.this);
-                    int height = ScreenUtils.getScreenHeight(NewActivity.this);
+                    int width = CommonUtil.getScreenWidth(NewActivity.this);
+                    int height = CommonUtil.getScreenHeight(NewActivity.this);
                     ArrayList<String> photos = data.getStringArrayListExtra(PhotoPicker.KEY_SELECTED_PHOTOS);
                     //可以同时插入多张图片
                     for (String imagePath : photos) {
@@ -410,7 +405,7 @@ public class NewActivity extends BaseActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        //如果APP处于后台，或者手机锁屏，则启用密码锁
+        //如果APP处于后台，或者手机锁屏，则保存数据
         if (CommonUtil.isAppOnBackground(getApplicationContext()) ||
                 CommonUtil.isLockScreeen(getApplicationContext())){
             saveNoteData(true);//处于后台时保存数据
@@ -441,5 +436,13 @@ public class NewActivity extends BaseActivity {
     @Override
     public void onBackPressed() {
         dealwithExit();
+    }
+
+    @Override
+    public void onDeleteImage(String imagePath) {
+        boolean isOK = SDCardUtil.deleteFile(imagePath);
+        if (isOK){
+            showToast("删除成功："+imagePath);
+        }
     }
 }

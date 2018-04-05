@@ -15,6 +15,7 @@ import java.io.IOException;
 
 public class SDCardUtil {
 	public static String SDCardRoot = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator;
+	public static String APP_NAME = "XRichText";
 
 	/**
 	 * 检查是否存在SDCard
@@ -34,7 +35,7 @@ public class SDCardUtil {
 	 * @return
 	 */
 	public static String getPictureDir(){
-		String imageCacheUrl = SDCardRoot + "XRichText" + File.separator;
+		String imageCacheUrl = SDCardRoot + APP_NAME + File.separator;
 		File file = new File(imageCacheUrl);
 		if(!file.exists())
 			file.mkdir();  //如果不存在则创建
@@ -60,29 +61,6 @@ public class SDCardUtil {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return file.getAbsolutePath();
-	}
-
-	/**
-	 * 保存到指定路径，笔记中插入图片
-	 * @param bitmap
-	 * @param path
-	 * @return
-	 */
-	public static String saveToSdCard(Bitmap bitmap, String path) {
-		File file = new File(path);
-		try {
-			FileOutputStream out = new FileOutputStream(file);
-			if (bitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)) {
-				out.flush();
-				out.close();
-			}
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		//System.out.println("文件保存路径："+ file.getAbsolutePath());
 		return file.getAbsolutePath();
 	}
 
@@ -116,10 +94,12 @@ public class SDCardUtil {
 	}
 
 	/** 删除文件 **/
-	public static void deleteFile(String filePath) {
+	public static boolean deleteFile(String filePath) {
 		File file = new File(filePath);
+		boolean isOk = false;
 		if (file.isFile() && file.exists())
-			file.delete(); // 删除文件
+			isOk = file.delete(); // 删除文件
+		return isOk;
 	}
 
 }

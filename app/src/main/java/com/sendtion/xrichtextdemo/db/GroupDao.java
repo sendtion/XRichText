@@ -7,7 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.sendtion.xrichtextdemo.bean.Group;
-import com.sendtion.xrichtextdemo.util.DateUtils;
+import com.sendtion.xrichtextdemo.util.CommonUtil;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -176,8 +176,8 @@ public class GroupDao {
                 values.put("g_name", groupName);
                 values.put("g_color", "#FFFFFF");
                 values.put("g_encrypt", 0);
-                values.put("g_create_time", DateUtils.date2string(new Date()));
-                values.put("g_update_time", DateUtils.date2string(new Date()));
+                values.put("g_create_time", CommonUtil.date2string(new Date()));
+                values.put("g_update_time", CommonUtil.date2string(new Date()));
                 db.insert("db_group", null, values);
             }
         } catch (Exception e) {
@@ -204,7 +204,7 @@ public class GroupDao {
             values.put("g_order", group.getOrder());
             values.put("g_color", group.getColor());
             values.put("g_encrypt", group.getIsEncrypt());
-            values.put("update_time", DateUtils.date2string(new Date()));
+            values.put("update_time", CommonUtil.date2string(new Date()));
             db.update("db_group", values, "g_id=?", new String[]{group.getId() + ""});
         } catch (Exception e) {
             e.printStackTrace();

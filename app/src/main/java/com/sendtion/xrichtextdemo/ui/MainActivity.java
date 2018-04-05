@@ -7,17 +7,17 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.jcodecraeer.xrecyclerview.ProgressStyle;
-import com.jcodecraeer.xrecyclerview.XRecyclerView;
 import com.sendtion.xrichtextdemo.R;
 import com.sendtion.xrichtextdemo.adapter.MyNoteListAdapter;
 import com.sendtion.xrichtextdemo.bean.Note;
 import com.sendtion.xrichtextdemo.db.NoteDao;
+import com.sendtion.xrichtextdemo.util.StringUtils;
 import com.sendtion.xrichtextdemo.view.SpacesItemDecoration;
 
 import java.util.List;
@@ -31,7 +31,7 @@ import java.util.List;
 
 public class MainActivity extends BaseActivity {
     private static final String TAG = "MainActivity";
-    private XRecyclerView rv_list_main;
+    private RecyclerView rv_list_main;
     private MyNoteListAdapter mNoteListAdapter;
     private List<Note> noteList;
     private NoteDao noteDao;
@@ -66,24 +66,18 @@ public class MainActivity extends BaseActivity {
 
         noteDao = new NoteDao(this);
 
-        rv_list_main = (XRecyclerView) findViewById(R.id.rv_list_main);
-        /****************** 设置XRecyclerView属性 **************************/
+        rv_list_main = (RecyclerView) findViewById(R.id.rv_list_main);
+
         rv_list_main.addItemDecoration(new SpacesItemDecoration(0));//设置item间距
+
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);//竖向列表
         rv_list_main.setLayoutManager(layoutManager);
-
-        rv_list_main.setLoadingMoreEnabled(true);//开启上拉加载
-        rv_list_main.setPullRefreshEnabled(true);//开启下拉刷新
-        rv_list_main.setRefreshProgressStyle(ProgressStyle.SquareSpin);
-        rv_list_main.setLoadingMoreProgressStyle(ProgressStyle.BallScale);
-        /****************** 设置XRecyclerView属性 **************************/
 
         mNoteListAdapter = new MyNoteListAdapter();
         mNoteListAdapter.setmNotes(noteList);
         rv_list_main.setAdapter(mNoteListAdapter);
 
-        rv_list_main.setLoadingListener(new MainActivity.MyLoadingListener());
         mNoteListAdapter.setOnItemClickListener(new MyNoteListAdapter.OnRecyclerViewItemClickListener() {
             @Override
             public void onItemClick(View view, Note note) {
@@ -109,6 +103,8 @@ public class MainActivity extends BaseActivity {
                         int ret = noteDao.deleteNote(note.getId());
                         if (ret > 0){
                             showToast("删除成功");
+                            //TODO 删除笔记成功后，记得删除图片（分为本地图片和网络图片）
+                            //获取笔记中图片的列表 StringUtils.getTextFromHtml(note.getContent(), true);
                             refreshNoteList();
                         }
                     }
@@ -119,34 +115,9 @@ public class MainActivity extends BaseActivity {
         });
     }
 
-    /** 上拉加载和下拉刷新事件 **/
-    private class MyLoadingListener implements XRecyclerView.LoadingListener{
-
-        @Override
-        public void onRefresh() {//下拉刷新
-            rv_list_main.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    rv_list_main.refreshComplete();
-                }
-            }, 1000);
-        }
-
-        @Override
-        public void onLoadMore() {//上拉加载
-            rv_list_main.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    rv_list_main.loadMoreComplete();
-                }
-            }, 1000);
-        }
-    }
-
     //刷新笔记列表
     private void refreshNoteList(){
         noteList = noteDao.queryNotesAll(groupId);
-        //Log.i(TAG, "###noteList: "+noteList);
         mNoteListAdapter.setmNotes(noteList);
         mNoteListAdapter.notifyDataSetChanged();
     }

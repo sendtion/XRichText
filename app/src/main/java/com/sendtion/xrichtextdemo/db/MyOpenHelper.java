@@ -4,7 +4,7 @@ import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
-import com.sendtion.xrichtextdemo.util.DateUtils;
+import com.sendtion.xrichtextdemo.util.CommonUtil;
 
 import java.util.Date;
 
@@ -36,7 +36,7 @@ public class MyOpenHelper extends SQLiteOpenHelper {
                 "n_bg_color varchar, n_encrypt integer, n_create_time datetime," +
                 "n_update_time datetime )");
         db.execSQL("insert into db_group(g_name, g_order, g_color, g_encrypt, g_create_time, g_update_time) " +
-                "values(?,?,?,?,?,?)", new String[]{"默认笔记", "1", "#FFFFFF", "0", DateUtils.date2string(new Date()),DateUtils.date2string(new Date())});
+                "values(?,?,?,?,?,?)", new String[]{"默认笔记", "1", "#FFFFFF", "0", CommonUtil.date2string(new Date()),CommonUtil.date2string(new Date())});
     }
 
     @Override

@@ -145,39 +145,6 @@ public class ImageUtils {
     }
 
     /**
-     * 根据view的宽度，动态缩放bitmap尺寸
-     *
-     * @param width
-     *            view的宽度
-     */
-//    public Bitmap getScaledBitmap(String filePath, int width) {
-//        BitmapFactory.Options options = new BitmapFactory.Options();
-//        options.inJustDecodeBounds = true;
-//        BitmapFactory.decodeFile(filePath, options);
-//        int sampleSize = options.outWidth > width ? options.outWidth / width
-//                + 1 : 1;
-//        options.inJustDecodeBounds = false;
-//        options.inSampleSize = sampleSize;
-//        return BitmapFactory.decodeFile(filePath, options);
-//    }
-
-    /**
-     * 对图片进行按比例设置
-     * @param bitmap 要处理的图片
-     * @return 返回处理好的图片
-     */
-//    public static Bitmap getScaleBitmap(Bitmap bitmap, float widthScale, float heightScale){
-//        Matrix matrix = new Matrix();
-//        matrix.postScale(widthScale, heightScale);
-//        if(bitmap == null){
-//            return null;
-//        }
-//        Bitmap resizeBmp  =
-//                Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-//        return resizeBmp;
-//    }
-
-    /**
      * 根据路径删除图片
      *
      * @param path

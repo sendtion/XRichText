@@ -94,4 +94,33 @@ public class StringUtils {
         return spannable;
     }
 
+    /**
+     * 从html文本中提取图片地址，或者文本内容
+     * @param html 传入html文本
+     * @param isGetImage true获取图片，false获取文本
+     * @return
+     */
+    public static List<String> getTextFromHtml(String html, boolean isGetImage){
+        List<String> imageList = new ArrayList<>();
+        List<String> textList = new ArrayList<>();
+        //根据img标签分割出图片和字符串
+        List<String> list = cutStringByImgTag(html);
+        for (int i = 0; i < list.size(); i++) {
+            String text = list.get(i);
+            if (text.contains("<img") && text.contains("src=")) {
+                //从img标签中获取图片地址
+                String imagePath = getImgSrc(text);
+                imageList.add(imagePath);
+            } else {
+                textList.add(text);
+            }
+        }
+        //判断是获取图片还是文本
+        if (isGetImage) {
+            return imageList;
+        } else {
+            return textList;
+        }
+    }
+
 }
