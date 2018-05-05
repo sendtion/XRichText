@@ -2,7 +2,9 @@ package com.sendtion.xrichtextdemo.ui;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -22,14 +24,16 @@ import com.sendtion.xrichtextdemo.db.GroupDao;
 import com.sendtion.xrichtextdemo.db.NoteDao;
 import com.sendtion.xrichtextdemo.util.CommonUtil;
 import com.sendtion.xrichtextdemo.util.ImageUtils;
+import com.sendtion.xrichtextdemo.util.MyGlideEngine;
 import com.sendtion.xrichtextdemo.util.SDCardUtil;
 import com.sendtion.xrichtextdemo.util.StringUtils;
+import com.zhihu.matisse.Matisse;
+import com.zhihu.matisse.MimeType;
+import com.zhihu.matisse.internal.entity.CaptureStrategy;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import me.iwf.photopicker.PhotoPicker;
 import rx.Observable;
 import rx.Observer;
 import rx.Subscriber;
@@ -42,6 +46,8 @@ import rx.schedulers.Schedulers;
  */
 public class NewActivity extends BaseActivity implements RichTextEditor.OnDeleteImageListener {
     private static final String TAG = "NewActivity";
+
+    private static final int REQUEST_CODE_CHOOSE = 23;//定义请求码常量
 
     private EditText et_new_title;
     private RichTextEditor et_new_content;
@@ -318,13 +324,20 @@ public class NewActivity extends BaseActivity implements RichTextEditor.OnDelete
 //        intent.setDataAndType(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");// 相片类型
 //        startActivityForResult(intent, 1);
 
-        //调用第三方图库选择
-        PhotoPicker.builder()
-                .setPhotoCount(5)//可选择图片数量
-                .setShowCamera(true)//是否显示拍照按钮
-                .setShowGif(true)//是否显示动态图
-                .setPreviewEnabled(true)//是否可以预览
-                .start(this, PhotoPicker.REQUEST_CODE);
+        Matisse.from(this)
+                .choose(MimeType.of(MimeType.JPEG, MimeType.PNG, MimeType.GIF))//照片视频全部显示MimeType.allOf()
+                .countable(true)//true:选中后显示数字;false:选中后显示对号
+                .maxSelectable(3)//最大选择数量为9
+                //.addFilter(new GifSizeFilter(320, 320, 5 * Filter.K * Filter.K))
+                .gridExpectedSize(getResources().getDimensionPixelSize(R.dimen.grid_expected_size))//图片显示表格的大小
+                .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)//图像选择和预览活动所需的方向
+                .thumbnailScale(0.85f)//缩放比例
+                .theme(R.style.Matisse_Zhihu)//主题  暗色主题 R.style.Matisse_Dracula
+                .imageEngine(new MyGlideEngine())//图片加载方式，Glide4需要自定义实现
+                .capture(true) //是否提供拍照功能，兼容7.0系统需要下面的配置
+                //参数1 true表示拍照存储在共有目录，false表示存储在私有目录；参数2与 AndroidManifest中authorities值相同，用于适配7.0系统 必须设置
+                .captureStrategy(new CaptureStrategy(true,"com.sendtion.xrichtextdemo.fileprovider"))//存储到哪里
+                .forResult(REQUEST_CODE_CHOOSE);//请求码
     }
 
     @Override
@@ -334,7 +347,7 @@ public class NewActivity extends BaseActivity implements RichTextEditor.OnDelete
             if (data != null) {
                 if (requestCode == 1){
                     //处理调用系统图库
-                } else if (requestCode == PhotoPicker.REQUEST_CODE){
+                } else if (requestCode == REQUEST_CODE_CHOOSE){
                     //异步方式插入图片
                     insertImagesSync(data);
                 }
@@ -354,18 +367,21 @@ public class NewActivity extends BaseActivity implements RichTextEditor.OnDelete
             public void call(Subscriber<? super String> subscriber) {
                 try{
                     et_new_content.measure(0, 0);
-                    int width = CommonUtil.getScreenWidth(NewActivity.this);
-                    int height = CommonUtil.getScreenHeight(NewActivity.this);
-                    ArrayList<String> photos = data.getStringArrayListExtra(PhotoPicker.KEY_SELECTED_PHOTOS);
+                    List<Uri> mSelected = Matisse.obtainResult(data);
                     //可以同时插入多张图片
-                    for (String imagePath : photos) {
-                        //Log.i("NewActivity", "###path=" + imagePath);
-                        Bitmap bitmap = ImageUtils.getSmallBitmap(imagePath, width, height);//压缩图片
+                    for (Uri imageUri : mSelected) {
+                        String imagePath = SDCardUtil.getFilePathFromUri(NewActivity.this,  imageUri);
+                        //Log.e(TAG, "###path=" + imagePath);
+                        Bitmap bitmap = ImageUtils.getSmallBitmap(imagePath, screenWidth, screenHeight);//压缩图片
                         //bitmap = BitmapFactory.decodeFile(imagePath);
                         imagePath = SDCardUtil.saveToSdCard(bitmap);
-                        //Log.i("NewActivity", "###imagePath="+imagePath);
+                        //Log.e(TAG, "###imagePath="+imagePath);
                         subscriber.onNext(imagePath);
                     }
+
+                    //测试插入网络图片 http://p695w3yko.bkt.clouddn.com/18-5-5/44849367.jpg
+                    subscriber.onNext("http://p695w3yko.bkt.clouddn.com/18-5-5/30271511.jpg");
+
                     subscriber.onCompleted();
                 }catch (Exception e){
                     e.printStackTrace();
@@ -379,14 +395,17 @@ public class NewActivity extends BaseActivity implements RichTextEditor.OnDelete
         .subscribe(new Observer<String>() {
             @Override
             public void onCompleted() {
-                insertDialog.dismiss();
-                et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), " ");
+                if (insertDialog != null && insertDialog.isShowing()) {
+                    insertDialog.dismiss();
+                }
                 showToast("图片插入成功");
             }
 
             @Override
             public void onError(Throwable e) {
-                insertDialog.dismiss();
+                if (insertDialog != null && insertDialog.isShowing()) {
+                    insertDialog.dismiss();
+                }
                 showToast("图片插入失败:"+e.getMessage());
             }
 

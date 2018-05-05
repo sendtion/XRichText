@@ -5,6 +5,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,11 +18,14 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.animation.GlideAnimation;
+//import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.FutureTarget;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 
 import java.util.ArrayList;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by sendtion on 2016/6/24.
@@ -165,35 +171,35 @@ public class RichTextView extends ScrollView {
         imageView.setAbsolutePath(imagePath);
 
         //如果是网络图片
-        if (imagePath.startsWith("http")){
+        if (imagePath.startsWith("http://") || imagePath.startsWith("https://")){
 
-            Glide.with(getContext()).load(imagePath).asBitmap().dontAnimate()
-                    .into(new SimpleTarget<Bitmap>(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL) {
-                            @Override
-                            public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
-                                // 调整imageView的高度，根据宽度等比获得高度
-                                int imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
-                                RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-                                        LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
-                                lp.bottomMargin = 10;
-                                imageView.setLayoutParams(lp);
+            GlideApp.with(getContext()).asBitmap().load(imagePath).dontAnimate()
+                    .into(new SimpleTarget<Bitmap>() {
+                        @Override
+                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                            //调整imageView的高度，根据宽度等比获得高度
+                            int imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
+                            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+                                    LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
+                            lp.bottomMargin = 10;
+                            imageView.setLayoutParams(lp);
 
-                                Glide.with(getContext()).load(imagePath).crossFade().centerCrop()
-                                        .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail)
-                                        .override(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL).into(imageView);
-                            }
+							GlideApp.with(getContext()).load(imagePath).centerCrop()
+									.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail)
+									.override(Target.SIZE_ORIGINAL, imageHeight).into(imageView);
+                        }
                     });
         } else { //如果是本地图片
 
-            Bitmap bmp = BitmapFactory.decodeFile(imagePath);
             // 调整imageView的高度，根据宽度等比获得高度
+            Bitmap bmp = BitmapFactory.decodeFile(imagePath);
             int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
             RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
                     LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
             lp.bottomMargin = 10;
             imageView.setLayoutParams(lp);
 
-            Glide.with(getContext()).load(imagePath).crossFade().centerCrop()
+            GlideApp.with(getContext()).load(imagePath).centerCrop()
                     .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
         }
 

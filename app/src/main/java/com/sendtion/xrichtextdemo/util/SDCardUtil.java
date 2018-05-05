@@ -6,9 +6,12 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -19,7 +22,6 @@ public class SDCardUtil {
 
 	/**
 	 * 检查是否存在SDCard
-	 * @return
 	 */
 	public static boolean hasSdcard(){
 		String state = Environment.getExternalStorageState();
@@ -32,13 +34,12 @@ public class SDCardUtil {
 
 	/**
 	 * 获得文章图片保存路径
-	 * @return
 	 */
 	public static String getPictureDir(){
 		String imageCacheUrl = SDCardRoot + APP_NAME + File.separator;
 		File file = new File(imageCacheUrl);
 		if(!file.exists())
-			file.mkdir();  //如果不存在则创建
+			file.mkdirs();  //如果不存在则创建
 		return imageCacheUrl;
 	}
 
@@ -91,6 +92,58 @@ public class SDCardUtil {
 			}
 		}
 		return data;
+	}
+
+	/**
+	 * 根据Uri获取真实的文件路径
+	 *
+	 * @param context
+	 * @param uri
+	 * @return
+	 */
+	public static String getFilePathFromUri(Context context, Uri uri) {
+		if (uri == null) return null;
+
+		ContentResolver resolver = context.getContentResolver();
+		FileInputStream input = null;
+		FileOutputStream output = null;
+		try {
+			ParcelFileDescriptor pfd = resolver.openFileDescriptor(uri, "r");
+			if (pfd == null) {
+				return null;
+			}
+			FileDescriptor fd = pfd.getFileDescriptor();
+			input = new FileInputStream(fd);
+
+
+			File outputDir = context.getCacheDir();
+			File outputFile = File.createTempFile("image", "tmp", outputDir);
+			String tempFilename = outputFile.getAbsolutePath();
+			output = new FileOutputStream(tempFilename);
+
+			int read;
+			byte[] bytes = new byte[4096];
+			while ((read = input.read(bytes)) != -1) {
+				output.write(bytes, 0, read);
+			}
+
+			return new File(tempFilename).getAbsolutePath();
+		} catch (Exception ignored) {
+
+			ignored.getStackTrace();
+		} finally {
+			try {
+				if (input != null){
+					input.close();
+				}
+				if (output != null){
+					output.close();
+				}
+			} catch (Throwable t) {
+				// Do nothing
+			}
+		}
+		return null;
 	}
 
 	/** 删除文件 **/

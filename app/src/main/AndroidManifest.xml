@@ -3,6 +3,7 @@
     package="com.sendtion.xrichtextdemo">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
@@ -27,12 +28,24 @@
             android:name=".ui.NoteActivity"
             android:label="@string/title_activity_note"/>
 
-        <activity
-            android:name="me.iwf.photopicker.PhotoPickerActivity"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name="me.iwf.photopicker.PhotoPagerActivity"
-            android:screenOrientation="portrait" />
+        <!--图片选择器-->
+        <!--<activity-->
+            <!--android:name="me.iwf.photopicker.PhotoPickerActivity"-->
+            <!--android:screenOrientation="portrait" />-->
+        <!--<activity-->
+            <!--android:name="me.iwf.photopicker.PhotoPagerActivity"-->
+            <!--android:screenOrientation="portrait" />-->
+
+        <!--知乎图片选择器，适配7.0系统-->
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="com.sendtion.xrichtextdemo.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
     </application>
 
 </manifest>

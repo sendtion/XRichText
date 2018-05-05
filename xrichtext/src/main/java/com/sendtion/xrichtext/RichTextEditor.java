@@ -6,7 +6,10 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.Drawable;
 import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -20,9 +23,11 @@ import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.request.animation.GlideAnimation;
+//import com.bumptech.glide.request.animation.GlideAnimation;
+import com.bumptech.glide.request.FutureTarget;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.target.Target;
+import com.bumptech.glide.request.transition.Transition;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -30,6 +35,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Created by sendtion on 2016/6/24.
@@ -368,7 +374,7 @@ public class RichTextEditor extends ScrollView {
 		imagePaths.add(imagePath);
 		RelativeLayout imageLayout = createImageLayout();
 		DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
-		Glide.with(getContext()).load(imagePath).crossFade().centerCrop().into(imageView);
+		GlideApp.with(getContext()).load(imagePath).centerCrop().into(imageView);
 		imageView.setAbsolutePath(imagePath);
 		imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);//裁剪剧中
 
@@ -399,12 +405,12 @@ public class RichTextEditor extends ScrollView {
 		imageView.setAbsolutePath(imagePath);
 
 		//如果是网络图片
-		if (imagePath.startsWith("http")){
+		if (imagePath.startsWith("http://") || imagePath.startsWith("https://")){
 
-			Glide.with(getContext()).load(imagePath).asBitmap().dontAnimate()
-					.into(new SimpleTarget<Bitmap>(Target.SIZE_ORIGINAL, Target.SIZE_ORIGINAL) {
+			GlideApp.with(getContext()).asBitmap().load(imagePath).dontAnimate()
+					.into(new SimpleTarget<Bitmap>() {
 						@Override
-						public void onResourceReady(Bitmap resource, GlideAnimation glideAnimation) {
+						public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
 							// 调整imageView的高度，根据宽度等比获得高度
 							//int imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
 							RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
@@ -412,22 +418,22 @@ public class RichTextEditor extends ScrollView {
 							lp.bottomMargin = 10;
 							imageView.setLayoutParams(lp);
 
-							Glide.with(getContext()).load(imagePath).crossFade().centerCrop()
+							GlideApp.with(getContext()).load(imagePath).centerCrop()
 									.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail)
 									.override(Target.SIZE_ORIGINAL, 500).into(imageView);
 						}
-			});
+					});
 		} else { //如果是本地图片
 
-			//Bitmap bmp = BitmapFactory.decodeFile(imagePath);
 			// 调整imageView的高度，根据宽度等比获得高度
+            //Bitmap bmp = BitmapFactory.decodeFile(imagePath);
 			//int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
 			RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
 					LayoutParams.MATCH_PARENT, 500);//固定图片高度，记得设置裁剪剧中
 			lp.bottomMargin = 10;
 			imageView.setLayoutParams(lp);
 
-			Glide.with(getContext()).load(imagePath).crossFade().centerCrop()
+			GlideApp.with(getContext()).load(imagePath).centerCrop()
 					.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
 		}
 

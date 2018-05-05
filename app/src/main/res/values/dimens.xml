@@ -13,4 +13,7 @@
     <dimen name="text_size_18">18dp</dimen>
     <dimen name="text_size_20">20dp</dimen>
 
+
+    <dimen name="grid_expected_size">120dp</dimen>
+
 </resources>
