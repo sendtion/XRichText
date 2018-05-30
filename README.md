@@ -12,6 +12,7 @@
 - xrichtext库中引入了Glide库版本为4.7.1，自己项目中不需要再引入，如果想引入自己的项目，请把Glide排除在外，AppCompat支持库同样也可以排除。
 - Demo中图片选择器更换为知乎开源库Matisse，适配Android 7.0系统使用FileProvider获取图片路径。
 - 开发环境更新为 AS 3.1.2 + Gradle 4.4 + compileSDK 27 + support library 27.1.1，导入项目报版本错误时，请手动修改为自己的版本。
+- <span style="color:red;">V1.3版本开放了编辑笔记时的删除图片接口，这个必须在Activity中实现OnDeleteImageListener接口，否则会发生崩溃！</span>
 - 请参考Demo的实现，进行了解本库。可以使用Gradle引入，也可以下载源码进行修改。
 - 如有问题，欢迎提出。可以加我QQ：524100248，微信：sendtion
 
