@@ -43,6 +43,16 @@ dependencies {
 }
 ```
 
+如果出现support版本不一致问题，请排除XRichText中的support库，或者升级自己的support库为27.1.1版本。
+Glide版本为4.7.1，依赖于27版本库，如果你用的为低版本，同样的处理方式。
+使用方式：
+```
+implementation ('com.github.sendtion:XRichText:1.3') {
+    exclude group: 'com.android.support'
+    exclude group: 'com.github.bumptech.glide'
+}
+```
+
 ## 具体使用
 在xml布局中添加基于EditText编辑器（可编辑）
 ```
