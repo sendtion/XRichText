@@ -19,7 +19,7 @@
 ## 截图预览
 
 ![笔记列表](http://p695w3yko.bkt.clouddn.com/18-4-5/19166796.jpg?imageMogr2/thumbnail/!35p)
-![文字笔记详情](http://p695w3yko.bkt.clouddn.com/note_detail.jpg?imageMogr2/thumbnail/!35p)
+![文字笔记详情](http://p695w3yko.bkt.clouddn.com/18-4-5/57787376.jpg?imageMogr2/thumbnail/!35p)
 ![连续插入多图](http://p695w3yko.bkt.clouddn.com/18-4-5/72572379.jpg?imageMogr2/thumbnail/!35p)
 ![编辑笔记](http://p695w3yko.bkt.clouddn.com/18-4-5/55920273.jpg?imageMogr2/thumbnail/!35p)
 ![图片笔记详情](http://p695w3yko.bkt.clouddn.com/18-4-5/78527283.jpg?imageMogr2/thumbnail/!35p)
