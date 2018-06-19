@@ -29,6 +29,7 @@ import com.sendtion.xrichtextdemo.util.SDCardUtil;
 import com.sendtion.xrichtextdemo.util.StringUtils;
 import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
+import com.zhihu.matisse.engine.impl.GlideEngine;
 import com.zhihu.matisse.internal.entity.CaptureStrategy;
 
 import java.util.Date;
@@ -44,7 +45,7 @@ import rx.schedulers.Schedulers;
 /**
  * 新建笔记
  */
-public class NewActivity extends BaseActivity implements RichTextEditor.OnDeleteImageListener {
+public class NewActivity extends BaseActivity {
     private static final String TAG = "NewActivity";
 
     private static final int REQUEST_CODE_CHOOSE = 23;//定义请求码常量
@@ -117,6 +118,16 @@ public class NewActivity extends BaseActivity implements RichTextEditor.OnDelete
         et_new_content = (RichTextEditor) findViewById(R.id.et_new_content);
         tv_new_time = (TextView) findViewById(R.id.tv_new_time);
         tv_new_group = (TextView) findViewById(R.id.tv_new_group);
+
+        et_new_content.setOnDeleteImageListener(new RichTextEditor.OnDeleteImageListener() {
+            @Override
+            public void onDeleteImage(String imagePath) {
+                boolean isOK = SDCardUtil.deleteFile(imagePath);
+                if (isOK){
+                    showToast("删除成功："+imagePath);
+                }
+            }
+        });
 
         Intent intent = getIntent();
         flag = intent.getIntExtra("flag", 0);//0新建，1编辑
@@ -336,7 +347,7 @@ public class NewActivity extends BaseActivity implements RichTextEditor.OnDelete
                 .imageEngine(new MyGlideEngine())//图片加载方式，Glide4需要自定义实现
                 .capture(true) //是否提供拍照功能，兼容7.0系统需要下面的配置
                 //参数1 true表示拍照存储在共有目录，false表示存储在私有目录；参数2与 AndroidManifest中authorities值相同，用于适配7.0系统 必须设置
-                .captureStrategy(new CaptureStrategy(true,"com.sendtion.xrichtextdemo.fileprovider"))//存储到哪里
+                .captureStrategy(new CaptureStrategy(true,"com.sendtion.matisse.fileprovider"))//存储到哪里
                 .forResult(REQUEST_CODE_CHOOSE);//请求码
     }
 
@@ -457,11 +468,4 @@ public class NewActivity extends BaseActivity implements RichTextEditor.OnDelete
         dealwithExit();
     }
 
-    @Override
-    public void onDeleteImage(String imagePath) {
-        boolean isOK = SDCardUtil.deleteFile(imagePath);
-        if (isOK){
-            showToast("删除成功："+imagePath);
-        }
-    }
 }

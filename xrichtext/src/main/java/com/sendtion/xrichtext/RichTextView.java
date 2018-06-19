@@ -3,15 +3,20 @@ package com.sendtion.xrichtext;
 import android.animation.LayoutTransition;
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
@@ -47,6 +52,21 @@ public class RichTextView extends ScrollView {
     private OnClickListener btnListener;//图片点击事件
     private ArrayList<String> imagePaths;//图片地址集合
 
+    /** 自定义属性 **/
+    //插入的图片显示高度
+    private int rtImageHeight = 0; //为0显示原始高度
+    //两张相邻图片间距
+    private int rtImageBottom = 10;
+    //图片是否显示边框，以及边框宽度和颜色
+    private boolean rtShowBorder = false;
+    private int rtImageBorderWidth = 2;
+    private int rtImageBorderColor = getResources().getColor(R.color.grey_600);
+    //文字相关属性，初始提示信息，文字大小和颜色
+    private String rtTextInitHint = "没有内容";
+    //getResources().getDimensionPixelSize(R.dimen.text_size_16)
+    private int rtTextSize = 16;
+    private int rtTextColor = getResources().getColor(R.color.grey_600);
+
     public RichTextView(Context context) {
         this(context, null);
     }
@@ -57,6 +77,20 @@ public class RichTextView extends ScrollView {
 
     public RichTextView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
+
+        //获取自定义属性
+        TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.RichTextView);
+        rtImageHeight = ta.getInteger(R.styleable.RichTextView_rt_view_image_height, 0);
+        rtImageBottom = ta.getInteger(R.styleable.RichTextView_rt_view_image_bottom, 10);
+        rtShowBorder = ta.getBoolean(R.styleable.RichTextView_rt_view_show_border, false);
+        rtImageBorderWidth = ta.getInteger(R.styleable.RichTextView_rt_view_image_border_width, 2);
+        rtImageBorderColor = ta.getColor(R.styleable.RichTextView_rt_view_image_border_color, getResources().getColor(R.color.grey_600));
+        //rtTextSize = ta.getDimensionPixelSize(R.styleable.RichTextView_rt_view_text_size, getResources().getDimensionPixelSize(R.dimen.text_size_16));
+        rtTextSize = ta.getInteger(R.styleable.RichTextView_rt_view_text_size, 16);
+        rtTextColor = ta.getColor(R.styleable.RichTextView_rt_view_text_color, getResources().getColor(R.color.grey_600));
+        rtTextInitHint = ta.getString(R.styleable.RichTextView_rt_view_text_init_hint);
+
+        ta.recycle();
 
         activity = (Activity) context;
         imagePaths = new ArrayList<>();
@@ -91,7 +125,7 @@ public class RichTextView extends ScrollView {
         LinearLayout.LayoutParams firstEditParam = new LinearLayout.LayoutParams(
                 LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         //editNormalPadding = dip2px(EDIT_PADDING);
-        TextView firstText = createTextView("没有内容", dip2px(context, EDIT_PADDING));
+        TextView firstText = createTextView(rtTextInitHint, dip2px(context, EDIT_PADDING));
         allLayout.addView(firstText, firstEditParam);
         lastFocusText = firstText;
     }
@@ -125,6 +159,9 @@ public class RichTextView extends ScrollView {
         textView.setTag(viewTagIndex++);
         textView.setPadding(editNormalPadding, paddingTop, editNormalPadding, paddingTop);
         textView.setHint(hint);
+        //textView.setTextSize(getResources().getDimensionPixelSize(R.dimen.text_size_16));
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, rtTextSize);
+        textView.setTextColor(rtTextColor);
         return textView;
     }
 
@@ -137,8 +174,14 @@ public class RichTextView extends ScrollView {
         layout.setTag(viewTagIndex++);
         View closeView = layout.findViewById(R.id.image_close);
         closeView.setVisibility(GONE);
-        View imageView = layout.findViewById(R.id.edit_imageView);
+        DataImageView imageView = layout.findViewById(R.id.edit_imageView);
         //imageView.setTag(layout.getTag());
+        if (rtShowBorder){//画出图片边框
+            imageView.setBorderWidth(rtImageBorderWidth);
+            imageView.setBorderColor(rtImageBorderColor);
+            //imageView.requestLayout();
+            imageView.postInvalidate();
+        }
 		imageView.setOnClickListener(btnListener);
         return layout;
     }
@@ -168,6 +211,12 @@ public class RichTextView extends ScrollView {
         imagePaths.add(imagePath);
         RelativeLayout imageLayout = createImageLayout();
         final DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
+        if (rtShowBorder){//画出图片边框
+            imageView.setBorderWidth(rtImageBorderWidth);
+            imageView.setBorderColor(rtImageBorderColor);
+            //imageView.requestLayout();
+            imageView.postInvalidate();
+        }
         imageView.setAbsolutePath(imagePath);
 
         //如果是网络图片
@@ -184,22 +233,28 @@ public class RichTextView extends ScrollView {
                             lp.bottomMargin = 10;
                             imageView.setLayoutParams(lp);
 
-							GlideApp.with(getContext()).load(imagePath).centerCrop()
-									.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail)
-									.override(Target.SIZE_ORIGINAL, imageHeight).into(imageView);
+                            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                            imageView.setImageBitmap(resource);
+                            // 不能使用centerCrop，否则图片显示不全
+//							GlideApp.with(getContext()).load(imagePath)
+//									.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail)
+//									.override(Target.SIZE_ORIGINAL, imageHeight).into(imageView);
                         }
                     });
         } else { //如果是本地图片
 
             // 调整imageView的高度，根据宽度等比获得高度
             Bitmap bmp = BitmapFactory.decodeFile(imagePath);
-            int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+            if (rtImageHeight == 0) {
+                rtImageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+            }
             RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-                    LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
-            lp.bottomMargin = 10;
+                    LayoutParams.MATCH_PARENT, rtImageHeight);//固定图片高度，记得设置裁剪剧中
+            lp.bottomMargin = rtImageBottom;
             imageView.setLayoutParams(lp);
 
-            GlideApp.with(getContext()).load(imagePath).centerCrop()
+            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+            GlideApp.with(getContext()).load(imagePath)
                     .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
         }
 

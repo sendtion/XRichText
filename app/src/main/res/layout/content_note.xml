@@ -48,7 +48,12 @@
         android:id="@+id/tv_note_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:textSize="@dimen/text_size_16"
-        android:textColor="@color/grey_600"/>
+        app:rt_view_image_height="500"
+        app:rt_view_image_bottom="10"
+        app:rt_view_show_border="true"
+        app:rt_view_image_border_width="5"
+        app:rt_view_image_border_color="@color/colorAccent"
+        app:rt_view_text_size="16"
+        app:rt_view_text_color="@color/colorAccent"/>
 
 </LinearLayout>

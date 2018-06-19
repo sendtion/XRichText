@@ -49,7 +49,13 @@
         android:id="@+id/et_new_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:textSize="@dimen/text_size_16"
-        android:textColor="@color/grey_600"/>
+        app:rt_editor_image_height="500"
+        app:rt_editor_image_bottom="10"
+        app:rt_editor_show_border="false"
+        app:rt_editor_image_border_width="5"
+        app:rt_editor_image_border_color="@color/colorAccent"
+        app:rt_editor_text_init_hint="在这里输入内容"
+        app:rt_editor_text_size="20"
+        app:rt_editor_text_color="@color/colorAccent"/>
 
 </LinearLayout>

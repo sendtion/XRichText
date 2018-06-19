@@ -19,6 +19,9 @@ import com.sendtion.xrichtextdemo.bean.Note;
 import com.sendtion.xrichtextdemo.db.NoteDao;
 import com.sendtion.xrichtextdemo.util.StringUtils;
 import com.sendtion.xrichtextdemo.view.SpacesItemDecoration;
+import com.simple.spiderman.CrashModel;
+import com.simple.spiderman.SpiderMan;
+import com.wenming.library.LogReport;
 
 import java.util.List;
 
@@ -66,6 +69,24 @@ public class MainActivity extends BaseActivity {
 
         noteDao = new NoteDao(this);
 
+        //上传上一次崩溃日志到邮箱
+        LogReport.getInstance().upload(this);
+
+        //弹出崩溃信息展示界面
+        SpiderMan.getInstance()
+                .init(this)
+                //设置是否捕获异常，不弹出崩溃框
+                .setEnable(true)
+                //设置是否显示崩溃信息展示页面
+                .showCrashMessage(true)
+                //是否回调异常信息，友盟等第三方崩溃信息收集平台会用到,
+                .setOnCrashListener(new SpiderMan.OnCrashListener() {
+                    @Override
+                    public void onCrash(Thread t, Throwable ex, CrashModel model) {
+                        //CrashModel 崩溃信息记录，包含设备信息
+                    }
+                });
+
         rv_list_main = (RecyclerView) findViewById(R.id.rv_list_main);
 
         rv_list_main.addItemDecoration(new SpacesItemDecoration(0));//设置item间距
@@ -81,7 +102,7 @@ public class MainActivity extends BaseActivity {
         mNoteListAdapter.setOnItemClickListener(new MyNoteListAdapter.OnRecyclerViewItemClickListener() {
             @Override
             public void onItemClick(View view, Note note) {
-                showToast(note.getTitle());
+                //showToast(note.getTitle());
 
                 Intent intent = new Intent(MainActivity.this, NoteActivity.class);
                 Bundle bundle = new Bundle();

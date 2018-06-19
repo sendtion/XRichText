@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.sendtion.xrichtextdemo">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
+    <!--解决项目minSDK与第三方库minSDK不一致情况-->
+    <uses-sdk tools:overrideLibrary="com.simple.spiderman"/>
+
     <application
+        android:name=".MyApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
@@ -39,7 +44,7 @@
         <!--知乎图片选择器，适配7.0系统-->
         <provider
             android:name="android.support.v4.content.FileProvider"
-            android:authorities="com.sendtion.xrichtextdemo.fileprovider"
+            android:authorities="com.sendtion.matisse.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data
