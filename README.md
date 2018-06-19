@@ -9,17 +9,20 @@
 - 生成的数据为list集合，可自定义处理数据格式。
 
 ### 注意事项
-- xrichtext库中引入了Glide库，自己项目中不需要再引入，如果想引入自己的项目，请把Glide排除在外，AppCompat支持库同样也可以排除。
+- xrichtext库中引入了Glide库版本为4.7.1，自己项目中不需要再引入，如果想引入自己的项目，请把Glide排除在外，AppCompat支持库同样也可以排除。
+- Demo中图片选择器更换为知乎开源库Matisse，适配Android 7.0系统使用FileProvider获取图片路径。
+- 开发环境更新为 AS 3.1.2 + Gradle 4.4 + compileSDK 27 + support library 27.1.1，导入项目报版本错误时，请手动修改为自己的版本。
+- <span style="color:red;">V1.3版本开放了编辑笔记时的删除图片接口，这个必须在Activity中实现OnDeleteImageListener接口，否则会发生崩溃！</span>
 - 请参考Demo的实现，进行了解本库。可以使用Gradle引入，也可以下载源码进行修改。
 - 如有问题，欢迎提出。可以加我QQ：524100248，微信：sendtion
 
 ## 截图预览
 
-![笔记列表](http://p695w3yko.bkt.clouddn.com/18-4-5/19166796.jpg)
-![文字笔记详情](http://p695w3yko.bkt.clouddn.com/18-4-5/57787376.jpg)
-![连续插入多图](http://p695w3yko.bkt.clouddn.com/18-4-5/72572379.jpg)
-![编辑笔记](http://p695w3yko.bkt.clouddn.com/18-4-5/55920273.jpg)
-![图片笔记详情](http://p695w3yko.bkt.clouddn.com/18-4-5/78527283.jpg)
+![笔记列表](http://p695w3yko.bkt.clouddn.com/18-4-5/19166796.jpg?imageMogr2/thumbnail/!35p)
+![文字笔记详情](http://p695w3yko.bkt.clouddn.com/18-4-5/57787376.jpg?imageMogr2/thumbnail/!35p)
+![连续插入多图](http://p695w3yko.bkt.clouddn.com/18-4-5/72572379.jpg?imageMogr2/thumbnail/!35p)
+![编辑笔记](http://p695w3yko.bkt.clouddn.com/18-4-5/55920273.jpg?imageMogr2/thumbnail/!35p)
+![图片笔记详情](http://p695w3yko.bkt.clouddn.com/18-4-5/78527283.jpg?imageMogr2/thumbnail/!35p)
 
 ## 使用方式
 #### 1. 作为module导入
@@ -36,7 +39,17 @@ allprojects {
 }
 
 dependencies {
-    compile 'com.github.sendtion:XRichText:1.2'
+    implementation 'com.github.sendtion:XRichText:1.3'
+}
+```
+
+如果出现support版本不一致问题，请排除XRichText中的support库，或者升级自己的support库为27.1.1版本。
+Glide版本为4.7.1，依赖于27版本库，如果你用的为低版本，同样的处理方式。
+使用方式：
+```
+implementation ('com.github.sendtion:XRichText:1.3') {
+    exclude group: 'com.android.support'
+    exclude group: 'com.github.bumptech.glide'
 }
 ```
 
@@ -114,6 +127,13 @@ protected void showEditData(String content) {
 ### 具体的使用方式，请参考Demo代码。
 
 ### 更新历史
+
+#### v1.3  2018.05.05
+- 更新Glide依赖版本为4.7.1，Glide4使用方式：http://bumptech.github.io/glide/doc/getting-started.html
+- 开发环境更新到AS 3.1.2 + Gradle 4.4
+- 优化图片插入的逻辑
+- 在Demo中加入插入网络图片的示例代码
+- 在Demo中图片选择器更换为知乎matisse
 
 #### v1.2  2018.04.05
 - 编辑笔记时，使用接口回调在外部处理图片的删除操作，可以自行实现删除本地图片还是网络图片
