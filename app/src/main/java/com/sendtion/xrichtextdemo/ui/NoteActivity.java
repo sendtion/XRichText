@@ -19,10 +19,9 @@ import com.sendtion.xrichtextdemo.bean.Note;
 import com.sendtion.xrichtextdemo.db.GroupDao;
 import com.sendtion.xrichtextdemo.db.NoteDao;
 import com.sendtion.xrichtextdemo.util.CommonUtil;
-import com.sendtion.xrichtextdemo.util.SDCardUtil;
 import com.sendtion.xrichtextdemo.util.StringUtils;
 
-import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import rx.Observable;
@@ -96,6 +95,23 @@ public class NoteActivity extends BaseActivity {
         tv_note_content = (RichTextView) findViewById(R.id.tv_note_content);//内容
         tv_note_time = (TextView) findViewById(R.id.tv_note_time);
         tv_note_group = (TextView) findViewById(R.id.tv_note_group);
+
+        // 图片点击事件
+        tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListener() {
+            @Override
+            public void onRtImageClick(String imagePath) {
+                ArrayList<String> imageList = StringUtils.getTextFromHtml(myContent, true);
+                int currentPosition = imageList.indexOf(imagePath);
+                showToast("点击图片："+currentPosition+"："+imagePath);
+
+                //点击图片预览
+//                PhotoPreview.builder()
+//                        .setPhotos(imageList)
+//                        .setCurrentItem(currentPosition)
+//                        .setShowDeleteButton(false)
+//                        .start(NoteActivity.this);
+            }
+        });
 
         Intent intent = getIntent();
         Bundle bundle = intent.getBundleExtra("data");

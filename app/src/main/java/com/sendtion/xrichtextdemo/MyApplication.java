@@ -43,8 +43,8 @@ public class MyApplication extends Application {
     private void initEmailReporter() {
         EmailReporter email = new EmailReporter(this);
         email.setReceiver("sendtion@126.com");//收件人
-        email.setSender("xxxxx@163.com");//发送人邮箱
-        email.setSendPassword("");//邮箱的客户端授权码，注意不是邮箱密码
+        email.setSender("sendtion2018@163.com");//发送人邮箱
+        email.setSendPassword("xrichtext2018");//邮箱的客户端授权码，注意不是邮箱密码
         email.setSMTPHost("smtp.163.com");//SMTP地址
         email.setPort("465");//SMTP 端口
         LogReport.getInstance().setUploadType(email);

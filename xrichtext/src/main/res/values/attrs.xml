@@ -4,9 +4,6 @@
     <declare-styleable name="RichTextEditor" >
         <attr name="rt_editor_image_height" format="integer" />
         <attr name="rt_editor_image_bottom" format="integer" />
-        <attr name="rt_editor_image_border_width" format="integer" />
-        <attr name="rt_editor_image_border_color" format="color" />
-        <attr name="rt_editor_show_border" format="boolean" />
         <attr name="rt_editor_text_init_hint" format="string" />
         <attr name="rt_editor_text_size" format="integer" />
         <attr name="rt_editor_text_color" format="color" />
@@ -15,9 +12,6 @@
     <declare-styleable name="RichTextView" >
         <attr name="rt_view_image_height" format="integer" />
         <attr name="rt_view_image_bottom" format="integer" />
-        <attr name="rt_view_image_border_width" format="integer" />
-        <attr name="rt_view_image_border_color" format="color" />
-        <attr name="rt_view_show_border" format="boolean" />
         <attr name="rt_view_text_init_hint" format="string" />
         <attr name="rt_view_text_size" format="integer" />
         <attr name="rt_view_text_color" format="color" />

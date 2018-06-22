@@ -12,6 +12,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -119,15 +120,28 @@ public class NewActivity extends BaseActivity {
         tv_new_time = (TextView) findViewById(R.id.tv_new_time);
         tv_new_group = (TextView) findViewById(R.id.tv_new_group);
 
-        et_new_content.setOnDeleteImageListener(new RichTextEditor.OnDeleteImageListener() {
+        // 图片删除事件
+        et_new_content.setOnRtImageDeleteListener(new RichTextEditor.OnRtImageDeleteListener() {
+
             @Override
-            public void onDeleteImage(String imagePath) {
+            public void onRtImageDelete(String imagePath) {
                 boolean isOK = SDCardUtil.deleteFile(imagePath);
                 if (isOK){
                     showToast("删除成功："+imagePath);
                 }
             }
         });
+        // 图片点击事件
+        et_new_content.setOnRtImageClickListener(new RichTextEditor.OnRtImageClickListener() {
+            @Override
+            public void onRtImageClick(String imagePath) {
+                List<String> imageList = StringUtils.getTextFromHtml(myContent, true);
+                int currentPosition = imageList.indexOf(imagePath);
+                showToast("点击图片："+currentPosition+"："+imagePath);
+            }
+        });
+
+        openSoftKeyInput();//打开软键盘显示
 
         Intent intent = getIntent();
         flag = intent.getIntExtra("flag", 0);//0新建，1编辑
@@ -168,6 +182,37 @@ public class NewActivity extends BaseActivity {
             tv_new_time.setText(myNoteTime);
         }
 
+    }
+
+    /**
+     * 关闭软键盘
+     */
+    private void closeSoftKeyInput(){
+        InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+        //boolean isOpen=imm.isActive();//isOpen若返回true，则表示输入法打开
+        if (imm.isActive()){
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
+                    InputMethodManager.HIDE_NOT_ALWAYS);
+            //imm.hideSoftInputFromInputMethod();//据说无效
+            //imm.hideSoftInputFromWindow(et_content.getWindowToken(), 0); //强制隐藏键盘
+            //如果输入法在窗口上已经显示，则隐藏，反之则显示
+            //imm.toggleSoftInput(0, InputMethodManager.HIDE_NOT_ALWAYS);
+        }
+    }
+
+    /**
+     * 打开软键盘
+     */
+    private void openSoftKeyInput(){
+        InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
+        //boolean isOpen=imm.isActive();//isOpen若返回true，则表示输入法打开
+        if (!imm.isActive()){
+            et_new_content.requestFocus();
+            //第二个参数可设置为0
+            //imm.showSoftInput(et_content, InputMethodManager.SHOW_FORCED);//强制显示
+            imm.showSoftInputFromInputMethod(getCurrentFocus().getWindowToken(),
+                    InputMethodManager.SHOW_FORCED);
+        }
     }
 
     /**
@@ -317,6 +362,7 @@ public class NewActivity extends BaseActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()){
             case R.id.action_insert_image:
+                closeSoftKeyInput();//关闭软键盘
                 callGallery();
                 break;
             case R.id.action_new_save:

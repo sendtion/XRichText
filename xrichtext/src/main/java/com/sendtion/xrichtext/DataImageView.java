@@ -16,8 +16,8 @@ import android.widget.ImageView;
 public class DataImageView extends ImageView {
 
     private boolean showBorder = false; //是否显示边框
-    private int borderColor = getResources().getColor(R.color.grey_600);//边框颜色
-    private int borderWidth = 2;//边框大小
+    private int borderColor = Color.GRAY;//边框颜色
+    private int borderWidth = 5;//边框大小
 
     private String absolutePath;
     private Bitmap bitmap;
@@ -73,8 +73,9 @@ public class DataImageView extends ImageView {
         if (showBorder) {
             //画边框
             Rect rec = canvas.getClipBounds();
-            rec.bottom -= 2;
-            rec.right -= 2;
+            // 这两句可以使底部和右侧边框更大
+            //rec.bottom -= 2;
+            //rec.right -= 2;
             //画笔
             Paint paint = new Paint();
             paint.setColor(borderColor);//设置颜色

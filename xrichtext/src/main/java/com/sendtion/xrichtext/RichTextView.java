@@ -21,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 //import com.bumptech.glide.request.animation.GlideAnimation;
@@ -52,20 +53,18 @@ public class RichTextView extends ScrollView {
     private OnClickListener btnListener;//图片点击事件
     private ArrayList<String> imagePaths;//图片地址集合
 
+    private OnRtImageClickListener onRtImageClickListener;
+
     /** 自定义属性 **/
     //插入的图片显示高度
     private int rtImageHeight = 0; //为0显示原始高度
     //两张相邻图片间距
     private int rtImageBottom = 10;
-    //图片是否显示边框，以及边框宽度和颜色
-    private boolean rtShowBorder = false;
-    private int rtImageBorderWidth = 2;
-    private int rtImageBorderColor = getResources().getColor(R.color.grey_600);
     //文字相关属性，初始提示信息，文字大小和颜色
     private String rtTextInitHint = "没有内容";
     //getResources().getDimensionPixelSize(R.dimen.text_size_16)
-    private int rtTextSize = 16;
-    private int rtTextColor = getResources().getColor(R.color.grey_600);
+    private int rtTextSize = 16; //相当于16sp
+    private int rtTextColor = Color.parseColor("#757575");
 
     public RichTextView(Context context) {
         this(context, null);
@@ -82,12 +81,9 @@ public class RichTextView extends ScrollView {
         TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.RichTextView);
         rtImageHeight = ta.getInteger(R.styleable.RichTextView_rt_view_image_height, 0);
         rtImageBottom = ta.getInteger(R.styleable.RichTextView_rt_view_image_bottom, 10);
-        rtShowBorder = ta.getBoolean(R.styleable.RichTextView_rt_view_show_border, false);
-        rtImageBorderWidth = ta.getInteger(R.styleable.RichTextView_rt_view_image_border_width, 2);
-        rtImageBorderColor = ta.getColor(R.styleable.RichTextView_rt_view_image_border_color, getResources().getColor(R.color.grey_600));
         //rtTextSize = ta.getDimensionPixelSize(R.styleable.RichTextView_rt_view_text_size, getResources().getDimensionPixelSize(R.dimen.text_size_16));
         rtTextSize = ta.getInteger(R.styleable.RichTextView_rt_view_text_size, 16);
-        rtTextColor = ta.getColor(R.styleable.RichTextView_rt_view_text_color, getResources().getColor(R.color.grey_600));
+        rtTextColor = ta.getColor(R.styleable.RichTextView_rt_view_text_color, Color.parseColor("#757575"));
         rtTextInitHint = ta.getString(R.styleable.RichTextView_rt_view_text_init_hint);
 
         ta.recycle();
@@ -111,14 +107,22 @@ public class RichTextView extends ScrollView {
 
             @Override
             public void onClick(View v) {
-                //Toast.makeText(getContext(),"点击图片",Toast.LENGTH_SHORT).show();
-//                int currentItem = 0;
-//                //点击图片预览
-//                PhotoPreview.builder()
-//                        .setPhotos(imagePaths)
-//                        .setCurrentItem(currentItem)
-//                        .setShowDeleteButton(false)
-//                        .start(activity);
+                if (v instanceof DataImageView){
+                    DataImageView imageView = (DataImageView) v;
+                    //int currentItem = imagePaths.indexOf(imageView.getAbsolutePath());
+                    //Toast.makeText(getContext(),"点击图片："+currentItem+"："+imageView.getAbsolutePath(), Toast.LENGTH_SHORT).show();
+                    // 开放图片点击接口
+                    if (onRtImageClickListener != null){
+                        onRtImageClickListener.onRtImageClick(imageView.getAbsolutePath());
+                    }
+
+                    //点击图片预览
+//                    PhotoPreview.builder()
+//                            .setPhotos(imagePaths)
+//                            .setCurrentItem(currentItem)
+//                            .setShowDeleteButton(false)
+//                            .start(activity);
+                }
             }
         };
 
@@ -133,6 +137,14 @@ public class RichTextView extends ScrollView {
     private int dip2px(Context context, float dipValue) {
         float m = context.getResources().getDisplayMetrics().density;
         return (int) (dipValue * m + 0.5f);
+    }
+
+    public interface OnRtImageClickListener{
+        void onRtImageClick(String imagePath);
+    }
+
+    public void setOnRtImageClickListener(OnRtImageClickListener onRtImageClickListener) {
+        this.onRtImageClickListener = onRtImageClickListener;
     }
 
     /**
@@ -176,12 +188,6 @@ public class RichTextView extends ScrollView {
         closeView.setVisibility(GONE);
         DataImageView imageView = layout.findViewById(R.id.edit_imageView);
         //imageView.setTag(layout.getTag());
-        if (rtShowBorder){//画出图片边框
-            imageView.setBorderWidth(rtImageBorderWidth);
-            imageView.setBorderColor(rtImageBorderColor);
-            //imageView.requestLayout();
-            imageView.postInvalidate();
-        }
 		imageView.setOnClickListener(btnListener);
         return layout;
     }
@@ -211,12 +217,6 @@ public class RichTextView extends ScrollView {
         imagePaths.add(imagePath);
         RelativeLayout imageLayout = createImageLayout();
         final DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
-        if (rtShowBorder){//画出图片边框
-            imageView.setBorderWidth(rtImageBorderWidth);
-            imageView.setBorderColor(rtImageBorderColor);
-            //imageView.requestLayout();
-            imageView.postInvalidate();
-        }
         imageView.setAbsolutePath(imagePath);
 
         //如果是网络图片
@@ -306,4 +306,43 @@ public class RichTextView extends ScrollView {
         mTransitioner.setDuration(300);
     }
 
+    public int getRtImageHeight() {
+        return rtImageHeight;
+    }
+
+    public void setRtImageHeight(int rtImageHeight) {
+        this.rtImageHeight = rtImageHeight;
+    }
+
+    public int getRtImageBottom() {
+        return rtImageBottom;
+    }
+
+    public void setRtImageBottom(int rtImageBottom) {
+        this.rtImageBottom = rtImageBottom;
+    }
+
+    public String getRtTextInitHint() {
+        return rtTextInitHint;
+    }
+
+    public void setRtTextInitHint(String rtTextInitHint) {
+        this.rtTextInitHint = rtTextInitHint;
+    }
+
+    public int getRtTextSize() {
+        return rtTextSize;
+    }
+
+    public void setRtTextSize(int rtTextSize) {
+        this.rtTextSize = rtTextSize;
+    }
+
+    public int getRtTextColor() {
+        return rtTextColor;
+    }
+
+    public void setRtTextColor(int rtTextColor) {
+        this.rtTextColor = rtTextColor;
+    }
 }

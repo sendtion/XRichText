@@ -100,9 +100,9 @@ public class StringUtils {
      * @param isGetImage true获取图片，false获取文本
      * @return
      */
-    public static List<String> getTextFromHtml(String html, boolean isGetImage){
-        List<String> imageList = new ArrayList<>();
-        List<String> textList = new ArrayList<>();
+    public static ArrayList<String> getTextFromHtml(String html, boolean isGetImage){
+        ArrayList<String> imageList = new ArrayList<>();
+        ArrayList<String> textList = new ArrayList<>();
         //根据img标签分割出图片和字符串
         List<String> list = cutStringByImgTag(html);
         for (int i = 0; i < list.size(); i++) {

@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 //import com.bumptech.glide.request.animation.GlideAnimation;
@@ -71,17 +72,14 @@ public class RichTextEditor extends ScrollView {
 	private int rtImageHeight = 500;
 	//两张相邻图片间距
     private int rtImageBottom = 10;
-    //图片是否显示边框，以及边框宽度和颜色
-    private boolean rtShowBorder = false;
-    private int rtImageBorderWidth = 2;
-    private int rtImageBorderColor = getResources().getColor(R.color.grey_600);
 	//文字相关属性，初始提示信息，文字大小和颜色
     private String rtTextInitHint = "请输入内容";
-    private int rtTextSize = getResources().getDimensionPixelSize(R.dimen.text_size_16);
-    private int rtTextColor = getResources().getColor(R.color.grey_600);
+    private int rtTextSize = 16;
+    private int rtTextColor = Color.parseColor("#757575");
 
 	//删除图片的接口
-	private OnDeleteImageListener onDeleteImageListener;
+	private OnRtImageDeleteListener onRtImageDeleteListener;
+	private OnRtImageClickListener onRtImageClickListener;
 
 	public RichTextEditor(Context context) {
 		this(context, null);
@@ -98,12 +96,9 @@ public class RichTextEditor extends ScrollView {
 		TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.RichTextEditor);
 		rtImageHeight = ta.getInteger(R.styleable.RichTextEditor_rt_editor_image_height, 500);
         rtImageBottom = ta.getInteger(R.styleable.RichTextEditor_rt_editor_image_bottom, 10);
-        rtShowBorder = ta.getBoolean(R.styleable.RichTextEditor_rt_editor_show_border, false);
-        rtImageBorderWidth = ta.getInteger(R.styleable.RichTextEditor_rt_editor_image_border_width, 2);
-        rtImageBorderColor = ta.getColor(R.styleable.RichTextEditor_rt_editor_image_border_color, getResources().getColor(R.color.grey_600));
         //rtTextSize = ta.getDimensionPixelSize(R.styleable.RichTextEditor_rt_editor_text_size, getResources().getDimensionPixelSize(R.dimen.text_size_16));
 		rtTextSize = ta.getInteger(R.styleable.RichTextView_rt_view_text_size, 16);
-        rtTextColor = ta.getColor(R.styleable.RichTextEditor_rt_editor_text_color, getResources().getColor(R.color.grey_600));
+        rtTextColor = ta.getColor(R.styleable.RichTextEditor_rt_editor_text_color, Color.parseColor("#757575"));
         rtTextInitHint = ta.getString(R.styleable.RichTextEditor_rt_editor_text_init_hint);
 
 		ta.recycle();
@@ -146,8 +141,12 @@ public class RichTextEditor extends ScrollView {
 			@Override
 			public void onClick(View v) {
 				if (v instanceof DataImageView){
-					//Toast.makeText(getContext(),"点击图片",Toast.LENGTH_SHORT).show();
-					onImageClick(v);
+					DataImageView imageView = (DataImageView)v;
+					//onImageClick(imageView);
+                    // 开放图片点击接口
+					if (onRtImageClickListener != null){
+						onRtImageClickListener.onRtImageClick(imageView.getAbsolutePath());
+					}
 				} else if (v instanceof ImageView){
 					//Toast.makeText(getContext(),"点击关闭",Toast.LENGTH_SHORT).show();
 					RelativeLayout parentView = (RelativeLayout) v.getParent();
@@ -216,12 +215,20 @@ public class RichTextEditor extends ScrollView {
 		}
 	}
 
-	public interface OnDeleteImageListener{
-		void onDeleteImage(String imagePath);
+	public interface OnRtImageDeleteListener{
+		void onRtImageDelete(String imagePath);
 	}
 
-	public void setOnDeleteImageListener(OnDeleteImageListener onDeleteImageListener) {
-		this.onDeleteImageListener = onDeleteImageListener;
+	public void setOnRtImageDeleteListener(OnRtImageDeleteListener onRtImageDeleteListener) {
+		this.onRtImageDeleteListener = onRtImageDeleteListener;
+	}
+
+	public interface OnRtImageClickListener{
+		void onRtImageClick(String imagePath);
+	}
+
+	public void setOnRtImageClickListener(OnRtImageClickListener onRtImageClickListener) {
+		this.onRtImageClickListener = onRtImageClickListener;
 	}
 
 	/**
@@ -239,9 +246,9 @@ public class RichTextEditor extends ScrollView {
 			EditData editData = dataList.get(disappearingImageIndex);
 			//Log.i("", "###editData: "+editData);
 			if (editData.imagePath != null){
-				if (onDeleteImageListener != null){
+				if (onRtImageDeleteListener != null){
 					//TODO 通过接口回调，在笔记编辑界面处理图片的删除操作
-					onDeleteImageListener.onDeleteImage(editData.imagePath);
+					onRtImageDeleteListener.onRtImageDelete(editData.imagePath);
 				}
 				//SDCardUtil.deleteFile(editData.imagePath);
 				imagePaths.remove(editData.imagePath);
@@ -253,11 +260,11 @@ public class RichTextEditor extends ScrollView {
 
 	/**
 	 * 处理图片点击事件
-	 * @param view
+	 * @param imageView
      */
-	private void onImageClick(View view) {
-//		int currentItem = 0;
-//		disappearingImageIndex = allLayout.indexOfChild(view);
+	private void onImageClick(DataImageView imageView) {
+		//int currentItem = imagePaths.indexOf(imageView.getAbsolutePath());
+//		disappearingImageIndex = allLayout.indexOfChild(imageView);
 //		//根据点击的view所在位置获取到图片地址
 //		List<EditData> dataList = buildEditData();
 //		EditData editData = dataList.get(disappearingImageIndex);
@@ -265,6 +272,7 @@ public class RichTextEditor extends ScrollView {
 //		if (editData.imagePath != null){
 //			currentItem = imagePaths.indexOf(editData.imagePath);
 //		}
+		//Toast.makeText(getContext(),"点击图片："+currentItem+"："+imageView.getAbsolutePath(), Toast.LENGTH_SHORT).show();
 
 		//点击图片预览
 //		PhotoPreview.builder()
@@ -318,14 +326,6 @@ public class RichTextEditor extends ScrollView {
 		closeView.setTag(layout.getTag());
 		closeView.setOnClickListener(btnListener);
 		DataImageView imageView = layout.findViewById(R.id.edit_imageView);
-		if (rtShowBorder){//画出图片边框
-			imageView.setBorderWidth(rtImageBorderWidth);
-			imageView.setBorderColor(rtImageBorderColor);
-			//imageView.requestLayout();
-			//imageView.postInvalidate();
-		}
-		imageView.setBorderWidth(rtImageBorderWidth);
-		imageView.setBorderColor(rtImageBorderColor);
 		imageView.setOnClickListener(btnListener);
 		return layout;
 	}
@@ -420,14 +420,6 @@ public class RichTextEditor extends ScrollView {
 		imagePaths.add(imagePath);
 		RelativeLayout imageLayout = createImageLayout();
 		DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
-		if (rtShowBorder){//画出图片边框
-			imageView.setBorderWidth(rtImageBorderWidth);
-			imageView.setBorderColor(rtImageBorderColor);
-			//imageView.requestLayout();
-			//imageView.postInvalidate();
-		}
-		imageView.setBorderWidth(rtImageBorderWidth);
-		imageView.setBorderColor(rtImageBorderColor);
 		GlideApp.with(getContext()).load(imagePath).centerCrop().into(imageView);
 		imageView.setAbsolutePath(imagePath);
 		imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);//裁剪剧中
@@ -456,12 +448,6 @@ public class RichTextEditor extends ScrollView {
 		imagePaths.add(imagePath);
 		RelativeLayout imageLayout = createImageLayout();
 		final DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
-		if (rtShowBorder){//画出图片边框
-			imageView.setBorderWidth(rtImageBorderWidth);
-			imageView.setBorderColor(rtImageBorderColor);
-			//imageView.requestLayout();
-			//imageView.postInvalidate();
-		}
 		imageView.setAbsolutePath(imagePath);
 
 		//如果是网络图片
@@ -623,30 +609,6 @@ public class RichTextEditor extends ScrollView {
         this.rtImageBottom = rtImageBottom;
     }
 
-    public boolean isRtShowBorder() {
-        return rtShowBorder;
-    }
-
-    public void setRtShowBorder(boolean rtShowBorder) {
-        this.rtShowBorder = rtShowBorder;
-    }
-
-    public int getRtImageBorderWidth() {
-        return rtImageBorderWidth;
-    }
-
-    public void setRtImageBorderWidth(int rtImageBorderWidth) {
-        this.rtImageBorderWidth = rtImageBorderWidth;
-    }
-
-    public int getRtImageBorderColor() {
-        return rtImageBorderColor;
-    }
-
-    public void setRtImageBorderColor(int rtImageBorderColor) {
-        this.rtImageBorderColor = rtImageBorderColor;
-    }
-
 	public String getRtTextInitHint() {
 		return rtTextInitHint;
 	}
@@ -670,4 +632,6 @@ public class RichTextEditor extends ScrollView {
 	public void setRtTextColor(int rtTextColor) {
 		this.rtTextColor = rtTextColor;
 	}
+
+
 }
