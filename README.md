@@ -39,7 +39,7 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.sendtion:XRichText:1.3'
+    implementation 'com.github.sendtion:XRichText:1.4'
 }
 ```
 
@@ -47,7 +47,7 @@ dependencies {
 Glide版本为4.7.1，依赖于27版本库，如果你用的为低版本，同样的处理方式。
 使用方式：
 ```
-implementation ('com.github.sendtion:XRichText:1.3') {
+implementation ('com.github.sendtion:XRichText:1.4') {
     exclude group: 'com.android.support'
     exclude group: 'com.github.bumptech.glide'
 }
@@ -127,6 +127,13 @@ protected void showEditData(String content) {
 ### 具体的使用方式，请参考Demo代码。
 
 ### 更新历史
+
+#### v1.4  2018.06.22
+- 添加自定义属性，可以设置图片高度，相邻图片间隔，文字大小和颜色
+- 修复没有实现图片删除接口导致的崩溃问题，开放图片删除接口
+- 添加点击图片查看大图的功能，开放图片点击接口
+- 加入崩溃日志信息展示，加入崩溃日志信息发送到邮件
+- 优化图片插入代码，删除多余的无用代码
 
 #### v1.3  2018.05.05
 - 更新Glide依赖版本为4.7.1，Glide4使用方式：http://bumptech.github.io/glide/doc/getting-started.html
