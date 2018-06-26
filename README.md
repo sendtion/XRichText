@@ -60,8 +60,11 @@ implementation ('com.github.sendtion:XRichText:1.4') {
     android:id="@+id/et_new_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:textSize="@dimen/text_size_16"
-    android:textColor="@color/grey_600"/>
+    app:rt_editor_image_height="500"
+    app:rt_editor_image_bottom="10"
+    app:rt_editor_text_init_hint="在这里输入内容"
+    app:rt_editor_text_size="16"
+    app:rt_editor_text_color="@color/colorAccent"/>
 ```
 
 在xml布局中添加基于TextView编辑器（不可编辑）
@@ -70,8 +73,31 @@ implementation ('com.github.sendtion:XRichText:1.4') {
     android:id="@+id/tv_note_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:textSize="@dimen/text_size_16"
-    android:textColor="@color/grey_600"/>
+    app:rt_view_image_height="0"
+    app:rt_view_image_bottom="10"
+    app:rt_view_text_size="16"
+    app:rt_view_text_color="@color/colorAccent"/>
+```
+
+### 自定义属性
+
+具体参考Demo
+
+- RichTextView
+```
+rt_view_image_height        图片高度，默认为0自适应，可以设置为固定数值，如500、800等
+rt_view_image_bottom        上下两张图片的间隔，默认10
+rt_view_text_size           文字大小，类似于sp单位，但是只有数值，如16 = 16sp
+rt_view_text_color          文字颜色，使用color资源文件
+```
+
+- RichTextEditor
+```
+rt_editor_image_height      图片高度，默认为500，可以设置为固定数值，如500、800等
+rt_editor_image_bottom      上下两张图片的间隔，默认10
+rt_editor_text_init_hint    默认提示文字，默认为“请输入内容”
+rt_editor_text_size         文字大小，类似于sp单位，但是只有数值，如16 = 16sp
+rt_editor_text_color        文字颜色，使用color资源文件
 ```
 
 **我把数据保存为了html格式，生成字符串存储到了数据库。**
