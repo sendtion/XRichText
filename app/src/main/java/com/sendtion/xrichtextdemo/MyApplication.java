@@ -35,6 +35,8 @@ public class MyApplication extends Application {
                 .init(getApplicationContext());
         //默认使用email发送。如果您只需要在本地存储崩溃信息，不需要发送出去，请把initEmailReport（）删掉即可。
         initEmailReporter();
+        //上传上一次崩溃日志到邮箱
+        LogReport.getInstance().upload(this);
     }
 
     /**

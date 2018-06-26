@@ -69,9 +69,6 @@ public class MainActivity extends BaseActivity {
 
         noteDao = new NoteDao(this);
 
-        //上传上一次崩溃日志到邮箱
-        LogReport.getInstance().upload(this);
-
         //弹出崩溃信息展示界面
         SpiderMan.getInstance()
                 .init(this)
