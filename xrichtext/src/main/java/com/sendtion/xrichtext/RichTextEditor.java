@@ -8,10 +8,6 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -24,22 +20,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
-import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-//import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.FutureTarget;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.target.Target;
-import com.bumptech.glide.request.transition.Transition;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+
+//import com.bumptech.glide.request.animation.GlideAnimation;
 
 /**
  * Created by sendtion on 2016/6/24.
@@ -117,7 +102,9 @@ public class RichTextEditor extends ScrollView {
 		//setupLayoutTransitions();//禁止载入动画
 		LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT,
 				LayoutParams.WRAP_CONTENT);
-		allLayout.setPadding(50,15,50,15);//设置间距，防止生成图片时文字太靠边，不能用margin，否则有黑边
+		//allLayout.setPadding(50,15,50,15);//设置间距，防止生成图片时文字太靠边，不能用margin，否则有黑边
+		allLayout.setPadding(0,15,0,15);//设置间距，防止生成图片时文字太靠边，不能用margin，否则有黑边
+
 		addView(allLayout, layoutParams);
 
 		// 2. 初始化键盘退格监听
@@ -426,8 +413,15 @@ public class RichTextEditor extends ScrollView {
 
 		// 调整imageView的高度，根据宽度等比获得高度
 		//int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+		// 调整imageView的高度，根据宽度来调整高度
+		int imageHeight = rtImageHeight;
+		if (bmp != null) {
+			imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+			bmp.recycle();
+		}
+
 		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-				LayoutParams.MATCH_PARENT, rtImageHeight);//TODO 固定图片高度500，考虑自定义属性
+				LayoutParams.MATCH_PARENT, imageHeight);//TODO 固定图片高度500，考虑自定义属性
 		lp.bottomMargin = rtImageBottom;
 		imageView.setLayoutParams(lp);
 
