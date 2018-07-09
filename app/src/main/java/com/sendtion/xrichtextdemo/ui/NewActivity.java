@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -125,9 +126,11 @@ public class NewActivity extends BaseActivity {
 
             @Override
             public void onRtImageDelete(String imagePath) {
-                boolean isOK = SDCardUtil.deleteFile(imagePath);
-                if (isOK){
-                    showToast("删除成功："+imagePath);
+                if (!TextUtils.isEmpty(imagePath)) {
+                    boolean isOK = SDCardUtil.deleteFile(imagePath);
+                    if (isOK) {
+                        showToast("删除成功：" + imagePath);
+                    }
                 }
             }
         });
@@ -135,9 +138,14 @@ public class NewActivity extends BaseActivity {
         et_new_content.setOnRtImageClickListener(new RichTextEditor.OnRtImageClickListener() {
             @Override
             public void onRtImageClick(String imagePath) {
-                List<String> imageList = StringUtils.getTextFromHtml(myContent, true);
-                int currentPosition = imageList.indexOf(imagePath);
-                showToast("点击图片："+currentPosition+"："+imagePath);
+                myContent = getEditData();
+                if (!TextUtils.isEmpty(myContent)){
+                    List<String> imageList = StringUtils.getTextFromHtml(myContent, true);
+                    if (!TextUtils.isEmpty(imagePath)) {
+                        int currentPosition = imageList.indexOf(imagePath);
+                        showToast("点击图片：" + currentPosition + "：" + imagePath);
+                    }
+                }
             }
         });
 
@@ -425,7 +433,7 @@ public class NewActivity extends BaseActivity {
                 try{
                     et_new_content.measure(0, 0);
                     List<Uri> mSelected = Matisse.obtainResult(data);
-                    //可以同时插入多张图片
+                    // 可以同时插入多张图片
                     for (Uri imageUri : mSelected) {
                         String imagePath = SDCardUtil.getFilePathFromUri(NewActivity.this,  imageUri);
                         //Log.e(TAG, "###path=" + imagePath);
@@ -436,8 +444,8 @@ public class NewActivity extends BaseActivity {
                         subscriber.onNext(imagePath);
                     }
 
-                    //测试插入网络图片 http://p695w3yko.bkt.clouddn.com/18-5-5/44849367.jpg
-                    subscriber.onNext("http://p695w3yko.bkt.clouddn.com/18-5-5/30271511.jpg");
+                    // 测试插入网络图片 http://p695w3yko.bkt.clouddn.com/18-5-5/44849367.jpg
+                    //subscriber.onNext("http://p695w3yko.bkt.clouddn.com/18-5-5/30271511.jpg");
 
                     subscriber.onCompleted();
                 }catch (Exception e){
