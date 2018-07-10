@@ -227,13 +227,22 @@ public class RichTextView extends ScrollView {
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
                             //调整imageView的高度，根据宽度等比获得高度
-                            int imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
+                            int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
+                            if (rtImageHeight > 0) {
+                                imageHeight = rtImageHeight;
+                            } else {
+                                imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
+                            }
                             RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
                                     LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
-                            lp.bottomMargin = 10;
+                            lp.bottomMargin = rtImageBottom;
                             imageView.setLayoutParams(lp);
 
-                            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                            if (rtImageHeight > 0) {
+                                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                            } else {
+                                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                            }
                             imageView.setImageBitmap(resource);
                             // 不能使用centerCrop，否则图片显示不全
 //							GlideApp.with(getContext()).load(imagePath)
@@ -245,17 +254,24 @@ public class RichTextView extends ScrollView {
 
             // 调整imageView的高度，根据宽度等比获得高度
             Bitmap bmp = BitmapFactory.decodeFile(imagePath);
-            if (rtImageHeight == 0) {
-                rtImageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+            int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
+            if (rtImageHeight > 0) {
+                imageHeight = rtImageHeight;
+            } else {
+                imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
             }
             RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-                    LayoutParams.MATCH_PARENT, rtImageHeight);//固定图片高度，记得设置裁剪剧中
+                    LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
             lp.bottomMargin = rtImageBottom;
             imageView.setLayoutParams(lp);
 
-            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-            GlideApp.with(getContext()).load(imagePath)
-                    .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+            if (rtImageHeight > 0){
+                GlideApp.with(getContext()).load(imagePath).centerCrop()
+                        .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+            } else {
+                GlideApp.with(getContext()).load(imagePath)
+                        .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+            }
         }
 
         // onActivityResult无法触发动画，此处post处理
