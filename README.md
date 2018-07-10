@@ -39,7 +39,7 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.sendtion:XRichText:1.4'
+    implementation 'com.github.sendtion:XRichText:1.5'
 }
 ```
 
@@ -165,6 +165,11 @@ tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListene
 ### 具体的使用方式，请参考Demo代码。
 
 ### 更新历史
+
+#### v1.5  2018.07.10
+- 修复详情页连续加载多张图片导致后续图片都跟第一张图片相同高度的问题
+- 修复Demo插入图片后点击图片导致空指针异常的问题
+- 去掉Demo插入图片后会插入一张网络图片的测试代码
 
 #### v1.4  2018.06.22
 - 添加自定义属性，可以设置图片高度，相邻图片间隔，文字大小和颜色
