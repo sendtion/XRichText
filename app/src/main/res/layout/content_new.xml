@@ -49,10 +49,11 @@
         android:id="@+id/et_new_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        app:rt_editor_text_line_space="14dp"
         app:rt_editor_image_height="500"
         app:rt_editor_image_bottom="10"
         app:rt_editor_text_init_hint="在这里输入内容"
-        app:rt_editor_text_size="16"
-        app:rt_editor_text_color="@color/colorAccent"/>
+        app:rt_editor_text_size="16sp"
+        app:rt_editor_text_color="@color/grey_900"/>
 
 </LinearLayout>

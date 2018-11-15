@@ -31,18 +31,20 @@ import com.sendtion.xrichtextdemo.util.SDCardUtil;
 import com.sendtion.xrichtextdemo.util.StringUtils;
 import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
-import com.zhihu.matisse.engine.impl.GlideEngine;
 import com.zhihu.matisse.internal.entity.CaptureStrategy;
+
+import org.reactivestreams.Subscriber;
 
 import java.util.Date;
 import java.util.List;
 
-import rx.Observable;
-import rx.Observer;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * 新建笔记
@@ -72,8 +74,8 @@ public class NewActivity extends BaseActivity {
     private ProgressDialog insertDialog;
     private int screenWidth;
     private int screenHeight;
-    private Subscription subsLoading;
-    private Subscription subsInsert;
+    private Disposable subsLoading;
+    private Disposable subsInsert;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -228,19 +230,18 @@ public class NewActivity extends BaseActivity {
      * @param html
      */
     private void showDataSync(final String html){
-
-        subsLoading = Observable.create(new Observable.OnSubscribe<String>() {
+        Observable.create(new ObservableOnSubscribe<String>() {
             @Override
-            public void call(Subscriber<? super String> subscriber) {
-                showEditData(subscriber, html);
+            public void subscribe(ObservableEmitter<String> emitter) {
+                showEditData(emitter, html);
             }
         })
-        .onBackpressureBuffer()
+        //.onBackpressureBuffer()
         .subscribeOn(Schedulers.io())//生产事件在io
         .observeOn(AndroidSchedulers.mainThread())//消费事件在UI线程
         .subscribe(new Observer<String>() {
             @Override
-            public void onCompleted() {
+            public void onComplete() {
                 if (loadingDialog != null){
                     loadingDialog.dismiss();
                 }
@@ -254,6 +255,11 @@ public class NewActivity extends BaseActivity {
                     loadingDialog.dismiss();
                 }
                 showToast("解析错误：图片不存在或已损坏");
+            }
+
+            @Override
+            public void onSubscribe(Disposable d) {
+                subsLoading = d;
             }
 
             @Override
@@ -274,17 +280,17 @@ public class NewActivity extends BaseActivity {
     /**
      * 显示数据
      */
-    protected void showEditData(Subscriber<? super String> subscriber, String html) {
+    protected void showEditData(ObservableEmitter<String> emitter, String html) {
         try{
             List<String> textList = StringUtils.cutStringByImgTag(html);
             for (int i = 0; i < textList.size(); i++) {
                 String text = textList.get(i);
-                subscriber.onNext(text);
+                emitter.onNext(text);
             }
-            subscriber.onCompleted();
+            emitter.onComplete();
         }catch (Exception e){
             e.printStackTrace();
-            subscriber.onError(e);
+            emitter.onError(e);
         }
     }
 
@@ -427,9 +433,9 @@ public class NewActivity extends BaseActivity {
     private void insertImagesSync(final Intent data){
         insertDialog.show();
 
-        subsInsert = Observable.create(new Observable.OnSubscribe<String>() {
+        Observable.create(new ObservableOnSubscribe<String>() {
             @Override
-            public void call(Subscriber<? super String> subscriber) {
+            public void subscribe(ObservableEmitter<String> emitter) {
                 try{
                     et_new_content.measure(0, 0);
                     List<Uri> mSelected = Matisse.obtainResult(data);
@@ -441,25 +447,25 @@ public class NewActivity extends BaseActivity {
                         //bitmap = BitmapFactory.decodeFile(imagePath);
                         imagePath = SDCardUtil.saveToSdCard(bitmap);
                         //Log.e(TAG, "###imagePath="+imagePath);
-                        subscriber.onNext(imagePath);
+                        emitter.onNext(imagePath);
                     }
 
                     // 测试插入网络图片 http://p695w3yko.bkt.clouddn.com/18-5-5/44849367.jpg
                     //subscriber.onNext("http://p695w3yko.bkt.clouddn.com/18-5-5/30271511.jpg");
 
-                    subscriber.onCompleted();
+                    emitter.onComplete();
                 }catch (Exception e){
                     e.printStackTrace();
-                    subscriber.onError(e);
+                    emitter.onError(e);
                 }
             }
         })
-        .onBackpressureBuffer()
+        //.onBackpressureBuffer()
         .subscribeOn(Schedulers.io())//生产事件在io
         .observeOn(AndroidSchedulers.mainThread())//消费事件在UI线程
         .subscribe(new Observer<String>() {
             @Override
-            public void onCompleted() {
+            public void onComplete() {
                 if (insertDialog != null && insertDialog.isShowing()) {
                     insertDialog.dismiss();
                 }
@@ -472,6 +478,11 @@ public class NewActivity extends BaseActivity {
                     insertDialog.dismiss();
                 }
                 showToast("图片插入失败:"+e.getMessage());
+            }
+
+            @Override
+            public void onSubscribe(Disposable d) {
+                subsInsert = d;
             }
 
             @Override
@@ -493,6 +504,13 @@ public class NewActivity extends BaseActivity {
         if (CommonUtil.isAppOnBackground(getApplicationContext()) ||
                 CommonUtil.isLockScreeen(getApplicationContext())){
             saveNoteData(true);//处于后台时保存数据
+        }
+
+        if (subsLoading != null && subsLoading.isDisposed()){
+            subsLoading.dispose();
+        }
+        if (subsInsert != null && subsInsert.isDisposed()){
+            subsInsert.dispose();
         }
     }
 

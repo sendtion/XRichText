@@ -21,15 +21,18 @@ import com.sendtion.xrichtextdemo.db.NoteDao;
 import com.sendtion.xrichtextdemo.util.CommonUtil;
 import com.sendtion.xrichtextdemo.util.StringUtils;
 
+import org.reactivestreams.Subscription;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import rx.Observable;
-import rx.Observer;
-import rx.Subscriber;
-import rx.Subscription;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import io.reactivex.Observable;
+import io.reactivex.ObservableEmitter;
+import io.reactivex.ObservableOnSubscribe;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.schedulers.Schedulers;
 
 /**
  * 笔记详情
@@ -50,7 +53,7 @@ public class NoteActivity extends BaseActivity {
     private GroupDao groupDao;
 
     private ProgressDialog loadingDialog;
-    private Subscription subsLoading;
+    private Disposable mDisposable;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -143,18 +146,18 @@ public class NoteActivity extends BaseActivity {
      */
     private void showDataSync(final String html){
 
-        subsLoading = Observable.create(new Observable.OnSubscribe<String>() {
+        Observable.create(new ObservableOnSubscribe<String>() {
             @Override
-            public void call(Subscriber<? super String> subscriber) {
-                showEditData(subscriber, html);
+            public void subscribe(ObservableEmitter<String> emitter) {
+                showEditData(emitter, html);
             }
         })
-        .onBackpressureBuffer()
+        //.onBackpressureBuffer()
         .subscribeOn(Schedulers.io())//生产事件在io
         .observeOn(AndroidSchedulers.mainThread())//消费事件在UI线程
         .subscribe(new Observer<String>() {
             @Override
-            public void onCompleted() {
+            public void onComplete() {
                 if (loadingDialog != null){
                     loadingDialog.dismiss();
                 }
@@ -167,6 +170,11 @@ public class NoteActivity extends BaseActivity {
                 }
                 showToast("解析错误：图片不存在或已损坏");
                 Log.e(TAG, "onError: " + e.getMessage());
+            }
+
+            @Override
+            public void onSubscribe(Disposable d) {
+                mDisposable = d;
             }
 
             @Override
@@ -187,17 +195,17 @@ public class NoteActivity extends BaseActivity {
      * 显示数据
      * @param html
      */
-    private void showEditData(Subscriber<? super String> subscriber, String html) {
+    private void showEditData(ObservableEmitter<String> emitter, String html) {
         try {
             List<String> textList = StringUtils.cutStringByImgTag(html);
             for (int i = 0; i < textList.size(); i++) {
                 String text = textList.get(i);
-                subscriber.onNext(text);
+                emitter.onNext(text);
             }
-            subscriber.onCompleted();
+            emitter.onComplete();
         } catch (Exception e){
             e.printStackTrace();
-            subscriber.onError(e);
+            emitter.onError(e);
         }
     }
 
@@ -234,6 +242,9 @@ public class NoteActivity extends BaseActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        if (mDisposable != null && !mDisposable.isDisposed()){
+            mDisposable.dispose();
+        }
     }
 
     @Override

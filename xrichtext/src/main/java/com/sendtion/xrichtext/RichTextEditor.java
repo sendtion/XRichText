@@ -76,6 +76,7 @@ public class RichTextEditor extends ScrollView {
     private String rtTextInitHint = "请输入内容";
     private int rtTextSize = 16;
     private int rtTextColor = Color.parseColor("#757575");
+	private int rtTextLineSpace = 8;
 
 	//删除图片的接口
 	private OnRtImageDeleteListener onRtImageDeleteListener;
@@ -96,9 +97,10 @@ public class RichTextEditor extends ScrollView {
 		TypedArray ta = context.obtainStyledAttributes(attrs, R.styleable.RichTextEditor);
 		rtImageHeight = ta.getInteger(R.styleable.RichTextEditor_rt_editor_image_height, 500);
         rtImageBottom = ta.getInteger(R.styleable.RichTextEditor_rt_editor_image_bottom, 10);
-        //rtTextSize = ta.getDimensionPixelSize(R.styleable.RichTextEditor_rt_editor_text_size, getResources().getDimensionPixelSize(R.dimen.text_size_16));
-		rtTextSize = ta.getInteger(R.styleable.RichTextView_rt_view_text_size, 16);
-        rtTextColor = ta.getColor(R.styleable.RichTextEditor_rt_editor_text_color, Color.parseColor("#757575"));
+        rtTextSize = ta.getDimensionPixelSize(R.styleable.RichTextEditor_rt_editor_text_size, 16);
+		//rtTextSize = ta.getInteger(R.styleable.RichTextView_rt_view_text_size, 16);
+		rtTextLineSpace = ta.getDimensionPixelSize(R.styleable.RichTextEditor_rt_editor_text_line_space, 8);
+		rtTextColor = ta.getColor(R.styleable.RichTextEditor_rt_editor_text_color, Color.parseColor("#757575"));
         rtTextInitHint = ta.getString(R.styleable.RichTextEditor_rt_editor_text_init_hint);
 
 		ta.recycle();
@@ -308,8 +310,9 @@ public class RichTextEditor extends ScrollView {
 		editText.setPadding(editNormalPadding, paddingTop, editNormalPadding, paddingTop);
 		editText.setHint(hint);
 		//editText.setTextSize(rtTextSize);
-		editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, rtTextSize);
-		editText.setTextColor(rtTextColor);
+		editText.setTextSize(TypedValue.COMPLEX_UNIT_PX, rtTextSize);
+		//editText.setTextColor(rtTextColor);
+		editText.setLineSpacing(rtTextLineSpace, 1.0f);
 		editText.setOnFocusChangeListener(focusListener);
 		return editText;
 	}
@@ -425,11 +428,25 @@ public class RichTextEditor extends ScrollView {
 		imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);//裁剪剧中
 
 		// 调整imageView的高度，根据宽度等比获得高度
+		int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
+		if (rtImageHeight > 0) {
+			imageHeight = rtImageHeight;
+		} else {
+			imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+		}
 		//int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
 		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-				LayoutParams.MATCH_PARENT, rtImageHeight);//TODO 固定图片高度500，考虑自定义属性
+				LayoutParams.MATCH_PARENT, imageHeight);//TODO 固定图片高度500，考虑自定义属性
 		lp.bottomMargin = rtImageBottom;
 		imageView.setLayoutParams(lp);
+
+		if (rtImageHeight > 0){
+			GlideApp.with(getContext()).load(imagePath).centerCrop()
+					.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+		} else {
+			GlideApp.with(getContext()).load(imagePath)
+					.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+		}
 
 		// onActivityResult无法触发动画，此处post处理
 		allLayout.addView(imageLayout, index);
@@ -478,14 +495,28 @@ public class RichTextEditor extends ScrollView {
 //					.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
 //		}
 
+		// 调整imageView的高度，根据宽度等比获得高度
+		int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
+		if (rtImageHeight > 0) {
+			imageHeight = rtImageHeight;
+		} else {
+			Bitmap bmp = BitmapFactory.decodeFile(imagePath);
+			imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+		}
         RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-                LayoutParams.MATCH_PARENT, rtImageHeight);//固定图片高度，记得设置裁剪剧中
+                LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
         lp.bottomMargin = rtImageBottom;
         imageView.setLayoutParams(lp);
 
-        GlideApp.with(getContext()).load(imagePath).centerCrop()
-                .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
-
+//        GlideApp.with(getContext()).load(imagePath).centerCrop()
+//                .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+		if (rtImageHeight > 0){
+			GlideApp.with(getContext()).load(imagePath).centerCrop()
+					.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+		} else {
+			GlideApp.with(getContext()).load(imagePath)
+					.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+		}
 		// onActivityResult无法触发动画，此处post处理
 		allLayout.addView(imageLayout, index);
 
@@ -633,5 +664,11 @@ public class RichTextEditor extends ScrollView {
 		this.rtTextColor = rtTextColor;
 	}
 
+	public int getRtTextLineSpace() {
+		return rtTextLineSpace;
+	}
 
+	public void setRtTextLineSpace(int rtTextLineSpace) {
+		this.rtTextLineSpace = rtTextLineSpace;
+	}
 }
