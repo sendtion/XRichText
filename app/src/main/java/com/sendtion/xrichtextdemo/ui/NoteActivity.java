@@ -66,8 +66,11 @@ public class NoteActivity extends BaseActivity {
 
     private void initView() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_note);
+        toolbar.setTitle("笔记详情");
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
         //toolbar.setNavigationIcon(R.drawable.ic_dialog_info);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -120,23 +123,26 @@ public class NoteActivity extends BaseActivity {
         Bundle bundle = intent.getBundleExtra("data");
         note = (Note) bundle.getSerializable("note");
 
-        myTitle = note.getTitle();
-        myContent = note.getContent();
-        Group group = groupDao.queryGroupById(note.getGroupId());
-        myGroupName = group.getName();
-
-        tv_note_title.setText(myTitle);
-        tv_note_content.post(new Runnable() {
-            @Override
-            public void run() {
-                //showEditData(myContent);
-                tv_note_content.clearAllLayout();
-                showDataSync(myContent);
+        if (note != null) {
+            myTitle = note.getTitle();
+            myContent = note.getContent();
+            Group group = groupDao.queryGroupById(note.getGroupId());
+            if (group != null) {
+                myGroupName = group.getName();
+                tv_note_group.setText(myGroupName);
             }
-        });
-        tv_note_time.setText(note.getCreateTime());
-        tv_note_group.setText(myGroupName);
-        setTitle("笔记详情");
+
+            tv_note_title.setText(myTitle);
+            tv_note_content.post(new Runnable() {
+                @Override
+                public void run() {
+                    //showEditData(myContent);
+                    tv_note_content.clearAllLayout();
+                    showDataSync(myContent);
+                }
+            });
+            tv_note_time.setText(note.getCreateTime());
+        }
 
     }
 

@@ -387,7 +387,9 @@ public class RichTextEditor extends ScrollView {
 	public void hideKeyBoard() {
 		InputMethodManager imm = (InputMethodManager) getContext()
 				.getSystemService(Context.INPUT_METHOD_SERVICE);
-		imm.hideSoftInputFromWindow(lastFocusEdit.getWindowToken(), 0);
+		if (imm != null && lastFocusEdit != null) {
+			imm.hideSoftInputFromWindow(lastFocusEdit.getWindowToken(), 0);
+		}
 	}
 
 	/**

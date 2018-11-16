@@ -4,6 +4,5 @@
     android:layout_height="wrap_content"
     android:background="@null"
     android:cursorVisible="true"
-    android:lineSpacingExtra="8dp"
     android:textSize="16sp"
     android:textColor="#616161" />

@@ -8,7 +8,7 @@
     android:background="@color/grey_100"
     android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
-    tools:context="com.sendtion.xrichtextdemo.ui.NoteActivity"
+    tools:context=".ui.NoteActivity"
     tools:showIn="@layout/activity_note">
 
     <TextView
@@ -33,7 +33,8 @@
             android:layout_height="wrap_content"
             android:textSize="@dimen/text_size_14"
             android:textColor="@color/grey_500"
-            android:layout_alignParentLeft="true"/>
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
 
         <TextView
             android:id="@+id/tv_note_group"
@@ -41,14 +42,15 @@
             android:layout_height="wrap_content"
             android:textSize="@dimen/text_size_14"
             android:textColor="@color/grey_500"
-            android:layout_alignParentRight="true"/>
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
     </RelativeLayout>
 
     <com.sendtion.xrichtext.RichTextView
         android:id="@+id/tv_note_content"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:rt_editor_text_line_space="14dp"
+        app:rt_view_text_line_space="6dp"
         app:rt_view_image_height="0"
         app:rt_view_image_bottom="10"
         app:rt_view_text_size="16sp"

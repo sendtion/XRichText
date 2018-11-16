@@ -50,8 +50,6 @@ import io.reactivex.schedulers.Schedulers;
  * 新建笔记
  */
 public class NewActivity extends BaseActivity {
-    private static final String TAG = "NewActivity";
-
     private static final int REQUEST_CODE_CHOOSE = 23;//定义请求码常量
 
     private EditText et_new_title;
@@ -156,32 +154,36 @@ public class NewActivity extends BaseActivity {
         Intent intent = getIntent();
         flag = intent.getIntExtra("flag", 0);//0新建，1编辑
         if (flag == 1){//编辑
+            setTitle("编辑笔记");
             Bundle bundle = intent.getBundleExtra("data");
             note = (Note) bundle.getSerializable("note");
 
-            myTitle = note.getTitle();
-            myContent = note.getContent();
-            myNoteTime = note.getCreateTime();
-            Group group = groupDao.queryGroupById(note.getGroupId());
-            myGroupName = group.getName();
-
-            loadingDialog = new ProgressDialog(this);
-            loadingDialog.setMessage("数据加载中...");
-            loadingDialog.setCanceledOnTouchOutside(false);
-            loadingDialog.show();
-
-            setTitle("编辑笔记");
-            tv_new_time.setText(note.getCreateTime());
-            tv_new_group.setText(myGroupName);
-            et_new_title.setText(note.getTitle());
-            et_new_content.post(new Runnable() {
-                @Override
-                public void run() {
-                    //showEditData(note.getContent());
-                    et_new_content.clearAllLayout();
-                    showDataSync(note.getContent());
+            if (note != null) {
+                myTitle = note.getTitle();
+                myContent = note.getContent();
+                myNoteTime = note.getCreateTime();
+                Group group = groupDao.queryGroupById(note.getGroupId());
+                if (group != null){
+                    myGroupName = group.getName();
+                    tv_new_group.setText(myGroupName);
                 }
-            });
+
+                loadingDialog = new ProgressDialog(this);
+                loadingDialog.setMessage("数据加载中...");
+                loadingDialog.setCanceledOnTouchOutside(false);
+                loadingDialog.show();
+
+                tv_new_time.setText(note.getCreateTime());
+                et_new_title.setText(note.getTitle());
+                et_new_content.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        //showEditData(note.getContent());
+                        et_new_content.clearAllLayout();
+                        showDataSync(note.getContent());
+                    }
+                });
+            }
         } else {
             setTitle("新建笔记");
             if (myGroupName == null || "全部笔记".equals(myGroupName)) {
@@ -200,7 +202,7 @@ public class NewActivity extends BaseActivity {
     private void closeSoftKeyInput(){
         InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
         //boolean isOpen=imm.isActive();//isOpen若返回true，则表示输入法打开
-        if (imm.isActive()){
+        if (imm != null && imm.isActive() && getCurrentFocus() != null){
             imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(),
                     InputMethodManager.HIDE_NOT_ALWAYS);
             //imm.hideSoftInputFromInputMethod();//据说无效
@@ -216,11 +218,11 @@ public class NewActivity extends BaseActivity {
     private void openSoftKeyInput(){
         InputMethodManager imm = (InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);
         //boolean isOpen=imm.isActive();//isOpen若返回true，则表示输入法打开
-        if (!imm.isActive()){
+        if (imm != null && !imm.isActive() && et_new_content != null){
             et_new_content.requestFocus();
             //第二个参数可设置为0
             //imm.showSoftInput(et_content, InputMethodManager.SHOW_FORCED);//强制显示
-            imm.showSoftInputFromInputMethod(getCurrentFocus().getWindowToken(),
+            imm.showSoftInputFromInputMethod(et_new_content.getWindowToken(),
                     InputMethodManager.SHOW_FORCED);
         }
     }
@@ -299,7 +301,7 @@ public class NewActivity extends BaseActivity {
      */
     private String getEditData() {
         List<RichTextEditor.EditData> editList = et_new_content.buildEditData();
-        StringBuffer content = new StringBuffer();
+        StringBuilder content = new StringBuilder();
         for (RichTextEditor.EditData itemData : editList) {
             if (itemData.inputStr != null) {
                 content.append(itemData.inputStr);
@@ -324,7 +326,7 @@ public class NewActivity extends BaseActivity {
             if (noteTitle.length() == 0 ){//如果标题为空，则截取内容为标题
                 if (noteContent.length() > cutTitleLength){
                     noteTitle = noteContent.substring(0,cutTitleLength);
-                } else if (noteContent.length() > 0 && noteContent.length() <= cutTitleLength){
+                } else if (noteContent.length() > 0){
                     noteTitle = noteContent;
                 }
             }
