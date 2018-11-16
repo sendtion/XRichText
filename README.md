@@ -39,7 +39,7 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.sendtion:XRichText:1.5'
+    implementation 'com.github.sendtion:XRichText:1.6'
 }
 ```
 
@@ -47,7 +47,7 @@ dependencies {
 Glide版本为4.7.1，依赖于27版本库，如果你用的为低版本，同样的处理方式。
 使用方式：
 ```
-implementation ('com.github.sendtion:XRichText:1.4') {
+implementation ('com.github.sendtion:XRichText:1.6') {
     exclude group: 'com.android.support'
     exclude group: 'com.github.bumptech.glide'
 }
@@ -60,11 +60,12 @@ implementation ('com.github.sendtion:XRichText:1.4') {
     android:id="@+id/et_new_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    app:rt_editor_text_line_space="6dp"
     app:rt_editor_image_height="500"
     app:rt_editor_image_bottom="10"
     app:rt_editor_text_init_hint="在这里输入内容"
-    app:rt_editor_text_size="16"
-    app:rt_editor_text_color="@color/colorAccent"/>
+    app:rt_editor_text_size="16sp"
+    app:rt_editor_text_color="@color/grey_900"/>
 ```
 
 在xml布局中添加基于TextView编辑器（不可编辑）
@@ -73,10 +74,11 @@ implementation ('com.github.sendtion:XRichText:1.4') {
     android:id="@+id/tv_note_content"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    app:rt_view_text_line_space="6dp"
     app:rt_view_image_height="0"
     app:rt_view_image_bottom="10"
-    app:rt_view_text_size="16"
-    app:rt_view_text_color="@color/colorAccent"/>
+    app:rt_view_text_size="16sp"
+    app:rt_view_text_color="@color/grey_900"/>
 ```
 
 ### 自定义属性
@@ -87,8 +89,9 @@ implementation ('com.github.sendtion:XRichText:1.4') {
 ```
 rt_view_image_height        图片高度，默认为0自适应，可以设置为固定数值，如500、800等
 rt_view_image_bottom        上下两张图片的间隔，默认10
-rt_view_text_size           文字大小，类似于sp单位，但是只有数值，如16 = 16sp
+rt_view_text_size           文字大小，使用sp单位，如16sp
 rt_view_text_color          文字颜色，使用color资源文件
+rt_view_text_line_space     字体行距，跟TextView使用一样，比如6dp
 ```
 
 - RichTextEditor
@@ -96,8 +99,9 @@ rt_view_text_color          文字颜色，使用color资源文件
 rt_editor_image_height      图片高度，默认为500，可以设置为固定数值，如500、800等
 rt_editor_image_bottom      上下两张图片的间隔，默认10
 rt_editor_text_init_hint    默认提示文字，默认为“请输入内容”
-rt_editor_text_size         文字大小，类似于sp单位，但是只有数值，如16 = 16sp
+rt_editor_text_size         文字大小，使用sp单位，如16sp
 rt_editor_text_color        文字颜色，使用color资源文件
+rt_editor_text_line_space   字体行距，跟TextView使用一样，比如6dp
 ```
 
 **我把数据保存为了html格式，生成字符串存储到了数据库。**
