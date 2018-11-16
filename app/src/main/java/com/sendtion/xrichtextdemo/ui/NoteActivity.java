@@ -102,23 +102,6 @@ public class NoteActivity extends BaseActivity {
         tv_note_time = (TextView) findViewById(R.id.tv_note_time);
         tv_note_group = (TextView) findViewById(R.id.tv_note_group);
 
-        // 图片点击事件
-        tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListener() {
-            @Override
-            public void onRtImageClick(String imagePath) {
-                ArrayList<String> imageList = StringUtils.getTextFromHtml(myContent, true);
-                int currentPosition = imageList.indexOf(imagePath);
-                showToast("点击图片："+currentPosition+"："+imagePath);
-
-                //点击图片预览
-//                PhotoPreview.builder()
-//                        .setPhotos(imageList)
-//                        .setCurrentItem(currentPosition)
-//                        .setShowDeleteButton(false)
-//                        .start(NoteActivity.this);
-            }
-        });
-
         Intent intent = getIntent();
         Bundle bundle = intent.getBundleExtra("data");
         note = (Note) bundle.getSerializable("note");
@@ -136,14 +119,35 @@ public class NoteActivity extends BaseActivity {
             tv_note_content.post(new Runnable() {
                 @Override
                 public void run() {
-                    //showEditData(myContent);
-                    tv_note_content.clearAllLayout();
-                    showDataSync(myContent);
+                    dealWithContent();
                 }
             });
             tv_note_time.setText(note.getCreateTime());
         }
 
+    }
+
+    private void dealWithContent(){
+        //showEditData(myContent);
+        tv_note_content.clearAllLayout();
+        showDataSync(myContent);
+
+        // 图片点击事件
+        tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListener() {
+            @Override
+            public void onRtImageClick(String imagePath) {
+                ArrayList<String> imageList = StringUtils.getTextFromHtml(myContent, true);
+                int currentPosition = imageList.indexOf(imagePath);
+                showToast("点击图片："+currentPosition+"："+imagePath);
+
+                //点击图片预览
+//                PhotoPreview.builder()
+//                        .setPhotos(imageList)
+//                        .setCurrentItem(currentPosition)
+//                        .setShowDeleteButton(false)
+//                        .start(NoteActivity.this);
+            }
+        });
     }
 
     /**
@@ -185,12 +189,14 @@ public class NoteActivity extends BaseActivity {
 
             @Override
             public void onNext(String text) {
-                if (text.contains("<img") && text.contains("src=")) {
-                    //imagePath可能是本地路径，也可能是网络地址
-                    String imagePath = StringUtils.getImgSrc(text);
-                    tv_note_content.addImageViewAtIndex(tv_note_content.getLastIndex(), imagePath);
-                } else {
-                    tv_note_content.addTextViewAtIndex(tv_note_content.getLastIndex(), text);
+                if (tv_note_content !=null) {
+                    if (text.contains("<img") && text.contains("src=")) {
+                        //imagePath可能是本地路径，也可能是网络地址
+                        String imagePath = StringUtils.getImgSrc(text);
+                        tv_note_content.addImageViewAtIndex(tv_note_content.getLastIndex(), imagePath);
+                    } else {
+                        tv_note_content.addTextViewAtIndex(tv_note_content.getLastIndex(), text);
+                    }
                 }
             }
         });

@@ -50,25 +50,10 @@ public class MainActivity extends BaseActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
 
-        final FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_main);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "新建笔记", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-                Intent intent = new Intent(MainActivity.this, NewActivity.class);
-                intent.putExtra("groupName", groupName);
-                intent.putExtra("flag", 0);
-                startActivity(intent);
-            }
-        });
-
         noteDao = new NoteDao(this);
 
         rv_list_main = (RecyclerView) findViewById(R.id.rv_list_main);
-
         rv_list_main.addItemDecoration(new SpacesItemDecoration(0));//设置item间距
-
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);//竖向列表
         rv_list_main.setLayoutManager(layoutManager);
@@ -116,6 +101,8 @@ public class MainActivity extends BaseActivity {
 
     //刷新笔记列表
     private void refreshNoteList(){
+        if (noteDao == null)
+            noteDao = new NoteDao(this);
         noteList = noteDao.queryNotesAll(groupId);
         mNoteListAdapter.setmNotes(noteList);
         mNoteListAdapter.notifyDataSetChanged();

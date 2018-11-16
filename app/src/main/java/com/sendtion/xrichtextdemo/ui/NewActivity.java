@@ -87,21 +87,14 @@ public class NewActivity extends BaseActivity {
     private void initView() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_new);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        }
         //toolbar.setNavigationIcon(R.drawable.ic_dialog_info);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 dealwithExit();
-            }
-        });
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_new);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
             }
         });
 
@@ -120,34 +113,6 @@ public class NewActivity extends BaseActivity {
         et_new_content = (RichTextEditor) findViewById(R.id.et_new_content);
         tv_new_time = (TextView) findViewById(R.id.tv_new_time);
         tv_new_group = (TextView) findViewById(R.id.tv_new_group);
-
-        // 图片删除事件
-        et_new_content.setOnRtImageDeleteListener(new RichTextEditor.OnRtImageDeleteListener() {
-
-            @Override
-            public void onRtImageDelete(String imagePath) {
-                if (!TextUtils.isEmpty(imagePath)) {
-                    boolean isOK = SDCardUtil.deleteFile(imagePath);
-                    if (isOK) {
-                        showToast("删除成功：" + imagePath);
-                    }
-                }
-            }
-        });
-        // 图片点击事件
-        et_new_content.setOnRtImageClickListener(new RichTextEditor.OnRtImageClickListener() {
-            @Override
-            public void onRtImageClick(String imagePath) {
-                myContent = getEditData();
-                if (!TextUtils.isEmpty(myContent)){
-                    List<String> imageList = StringUtils.getTextFromHtml(myContent, true);
-                    if (!TextUtils.isEmpty(imagePath)) {
-                        int currentPosition = imageList.indexOf(imagePath);
-                        showToast("点击图片：" + currentPosition + "：" + imagePath);
-                    }
-                }
-            }
-        });
 
         openSoftKeyInput();//打开软键盘显示
 
@@ -178,9 +143,7 @@ public class NewActivity extends BaseActivity {
                 et_new_content.post(new Runnable() {
                     @Override
                     public void run() {
-                        //showEditData(note.getContent());
-                        et_new_content.clearAllLayout();
-                        showDataSync(note.getContent());
+                        dealWithContent();
                     }
                 });
             }
@@ -194,6 +157,40 @@ public class NewActivity extends BaseActivity {
             tv_new_time.setText(myNoteTime);
         }
 
+    }
+
+    private void dealWithContent(){
+        //showEditData(note.getContent());
+        et_new_content.clearAllLayout();
+        showDataSync(note.getContent());
+
+        // 图片删除事件
+        et_new_content.setOnRtImageDeleteListener(new RichTextEditor.OnRtImageDeleteListener() {
+
+            @Override
+            public void onRtImageDelete(String imagePath) {
+                if (!TextUtils.isEmpty(imagePath)) {
+                    boolean isOK = SDCardUtil.deleteFile(imagePath);
+                    if (isOK) {
+                        showToast("删除成功：" + imagePath);
+                    }
+                }
+            }
+        });
+        // 图片点击事件
+        et_new_content.setOnRtImageClickListener(new RichTextEditor.OnRtImageClickListener() {
+            @Override
+            public void onRtImageClick(String imagePath) {
+                myContent = getEditData();
+                if (!TextUtils.isEmpty(myContent)){
+                    List<String> imageList = StringUtils.getTextFromHtml(myContent, true);
+                    if (!TextUtils.isEmpty(imagePath)) {
+                        int currentPosition = imageList.indexOf(imagePath);
+                        showToast("点击图片：" + currentPosition + "：" + imagePath);
+                    }
+                }
+            }
+        });
     }
 
     /**
@@ -247,8 +244,10 @@ public class NewActivity extends BaseActivity {
                 if (loadingDialog != null){
                     loadingDialog.dismiss();
                 }
-                //在图片全部插入完毕后，再插入一个EditText，防止最后一张图片后无法插入文字
-                et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), "");
+                if (et_new_content != null) {
+                    //在图片全部插入完毕后，再插入一个EditText，防止最后一张图片后无法插入文字
+                    et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), "");
+                }
             }
 
             @Override
@@ -266,14 +265,16 @@ public class NewActivity extends BaseActivity {
 
             @Override
             public void onNext(String text) {
-                if (text.contains("<img") && text.contains("src=")) {
-                    //imagePath可能是本地路径，也可能是网络地址
-                    String imagePath = StringUtils.getImgSrc(text);
-                    //插入空的EditText，以便在图片前后插入文字
-                    et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), "");
-                    et_new_content.addImageViewAtIndex(et_new_content.getLastIndex(), imagePath);
-                } else {
-                    et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), text);
+                if (et_new_content != null) {
+                    if (text.contains("<img") && text.contains("src=")) {
+                        //imagePath可能是本地路径，也可能是网络地址
+                        String imagePath = StringUtils.getImgSrc(text);
+                        //插入空的EditText，以便在图片前后插入文字
+                        et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), "");
+                        et_new_content.addImageViewAtIndex(et_new_content.getLastIndex(), imagePath);
+                    } else {
+                        et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), text);
+                    }
                 }
             }
         });
@@ -315,7 +316,7 @@ public class NewActivity extends BaseActivity {
     /**
      * 保存数据,=0销毁当前界面，=1不销毁界面，为了防止在后台时保存笔记并销毁，应该只保存笔记
      */
-    private void saveNoteData(boolean isBackground) {
+    private void saveNoteData(boolean isBackground) throws Exception {
         String noteTitle = et_new_title.getText().toString();
         String noteContent = getEditData();
         String groupName = tv_new_group.getText().toString();
@@ -382,7 +383,11 @@ public class NewActivity extends BaseActivity {
                 callGallery();
                 break;
             case R.id.action_new_save:
-                saveNoteData(false);
+                try {
+                    saveNoteData(false);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -502,17 +507,21 @@ public class NewActivity extends BaseActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        //如果APP处于后台，或者手机锁屏，则保存数据
-        if (CommonUtil.isAppOnBackground(getApplicationContext()) ||
-                CommonUtil.isLockScreeen(getApplicationContext())){
-            saveNoteData(true);//处于后台时保存数据
-        }
+        try {
+            //如果APP处于后台，或者手机锁屏，则保存数据
+            if (CommonUtil.isAppOnBackground(getApplicationContext()) ||
+                    CommonUtil.isLockScreeen(getApplicationContext())){
+                saveNoteData(true);//处于后台时保存数据
+            }
 
-        if (subsLoading != null && subsLoading.isDisposed()){
-            subsLoading.dispose();
-        }
-        if (subsInsert != null && subsInsert.isDisposed()){
-            subsInsert.dispose();
+            if (subsLoading != null && subsLoading.isDisposed()){
+                subsLoading.dispose();
+            }
+            if (subsInsert != null && subsInsert.isDisposed()){
+                subsInsert.dispose();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -520,19 +529,23 @@ public class NewActivity extends BaseActivity {
      * 退出处理
      */
     private void dealwithExit(){
-        String noteTitle = et_new_title.getText().toString();
-        String noteContent = getEditData();
-        String groupName = tv_new_group.getText().toString();
-        String noteTime = tv_new_time.getText().toString();
-        if (flag == 0) {//新建笔记
-            if (noteTitle.length() > 0 || noteContent.length() > 0) {
-                saveNoteData(false);
+        try {
+            String noteTitle = et_new_title.getText().toString();
+            String noteContent = getEditData();
+            String groupName = tv_new_group.getText().toString();
+            String noteTime = tv_new_time.getText().toString();
+            if (flag == 0) {//新建笔记
+                if (noteTitle.length() > 0 || noteContent.length() > 0) {
+                    saveNoteData(false);
+                }
+            }else if (flag == 1) {//编辑笔记
+                if (!noteTitle.equals(myTitle) || !noteContent.equals(myContent)
+                        || !groupName.equals(myGroupName) || !noteTime.equals(myNoteTime)) {
+                    saveNoteData(false);
+                }
             }
-        }else if (flag == 1) {//编辑笔记
-            if (!noteTitle.equals(myTitle) || !noteContent.equals(myContent)
-                    || !groupName.equals(myGroupName) || !noteTime.equals(myNoteTime)) {
-                saveNoteData(false);
-            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         finish();
     }
