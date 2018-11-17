@@ -12,7 +12,8 @@
 - xrichtext库中引入了Glide库版本为4.7.1，自己项目中不需要再引入，如果想引入自己的项目，请把Glide排除在外，AppCompat支持库同样也可以排除。
 - Demo中图片选择器更换为知乎开源库Matisse，适配Android 7.0系统使用FileProvider获取图片路径。
 - 开发环境更新为 AS 3.1.2 + Gradle 4.4 + compileSDK 27 + support library 27.1.1，导入项目报版本错误时，请手动修改为自己的版本。
-- <span style="color:red;">V1.4版本开放了编辑笔记时的删除图片接口，请自己在Activity中设置OnRtDeleteImageListener接口。</span>
+- **V1.4版本开放了编辑笔记时的删除图片接口，请自己在Activity中设置OnRtDeleteImageListener接口。**
+- **V1.6版本升级RxJava到2.2.3版本，RxAndroid到2.1.0版本。设置字体大小时需要带着单位，如app:rt_editor_text_size="16sp"。**
 - 请参考Demo的实现，进行了解本库。可以使用Gradle引入，也可以下载源码进行修改。
 - 如有问题，欢迎提出。可以加我QQ：524100248，微信：sendtion
 
@@ -170,6 +171,13 @@ tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListene
 
 ### 更新历史
 
+#### v1.6  2018.11.16
+- RxJava升级到2.2.3版本，RxAndroid升级到2.1.0版本
+- 编辑图片时支持自适应高度，高度设置为0即自适应，比如app:rt_editor_image_height="0"
+- 修改字体大小设置方式，像正常使用带着单位，比如app:rt_editor_text_size="16sp"
+- 支持设置字体行间距，比如app:rt_editor_text_line_space="6dp"
+- 修复xrichtext库及Demo中的各种崩溃异常
+
 #### v1.5  2018.07.10
 - 修复详情页连续加载多张图片导致后续图片都跟第一张图片相同高度的问题
 - 修复Demo插入图片后点击图片导致空指针异常的问题
@@ -209,7 +217,7 @@ tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListene
 - 实现编辑和保存
 
 ## 感谢
-本库参考了以下项目，感谢各位大神的辛苦劳作！
+本库参考了以下项目，感谢各位大神的优秀作品！
 - https://github.com/xmuSistone/android-animate-RichEditor
 - https://github.com/KDF5000/RichEditText
 
