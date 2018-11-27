@@ -311,7 +311,7 @@ public class RichTextEditor extends ScrollView {
 		editText.setHint(hint);
 		//editText.setTextSize(rtTextSize);
 		editText.setTextSize(TypedValue.COMPLEX_UNIT_PX, rtTextSize);
-		//editText.setTextColor(rtTextColor);
+		editText.setTextColor(rtTextColor);
 		editText.setLineSpacing(rtTextLineSpace, 1.0f);
 		editText.setOnFocusChangeListener(focusListener);
 		return editText;
