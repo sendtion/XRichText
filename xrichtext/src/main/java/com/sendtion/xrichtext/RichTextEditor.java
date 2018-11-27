@@ -274,7 +274,6 @@ public class RichTextEditor extends ScrollView {
 //		if (editData.imagePath != null){
 //			currentItem = imagePaths.indexOf(editData.imagePath);
 //		}
-		//Toast.makeText(getContext(),"点击图片："+currentItem+"："+imageView.getAbsolutePath(), Toast.LENGTH_SHORT).show();
 
 		//点击图片预览
 //		PhotoPreview.builder()
