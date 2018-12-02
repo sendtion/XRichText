@@ -40,7 +40,7 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.sendtion:XRichText:1.6'
+    implementation 'com.github.sendtion:XRichText:1.8'
 }
 ```
 
@@ -48,7 +48,7 @@ dependencies {
 Glide版本为4.7.1，依赖于27版本库，如果你用的为低版本，同样的处理方式。
 使用方式：
 ```
-implementation ('com.github.sendtion:XRichText:1.6') {
+implementation ('com.github.sendtion:XRichText:1.8') {
     exclude group: 'com.android.support'
     exclude group: 'com.github.bumptech.glide'
 }
@@ -171,6 +171,10 @@ tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListene
 
 ### 更新历史
 
+#### v1.8  2018.12.02
+- 修复编辑时设置文字颜色无效的问题
+- 编辑时添加和删除图片加入动画效果
+
 #### v1.6  2018.11.16
 - RxJava升级到2.2.3版本，RxAndroid升级到2.1.0版本
 - 编辑图片时支持自适应高度，高度设置为0即自适应，比如app:rt_editor_image_height="0"
@@ -229,7 +233,7 @@ tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListene
 
 ## License
 ```
-Copyright 2018 sendtion
+Copyright 2019 sendtion
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
