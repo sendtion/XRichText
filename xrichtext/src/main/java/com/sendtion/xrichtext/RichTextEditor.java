@@ -18,6 +18,7 @@ import android.util.TypedValue;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -116,7 +117,7 @@ public class RichTextEditor extends ScrollView {
 		allLayout = new LinearLayout(context);
 		allLayout.setOrientation(LinearLayout.VERTICAL);
 		//allLayout.setBackgroundColor(Color.WHITE);
-		//setupLayoutTransitions();//禁止载入动画
+		setupLayoutTransitions();//禁止载入动画
 		LayoutParams layoutParams = new LayoutParams(LayoutParams.MATCH_PARENT,
 				LayoutParams.WRAP_CONTENT);
 		allLayout.setPadding(50,15,50,15);//设置间距，防止生成图片时文字太靠边，不能用margin，否则有黑边
@@ -203,9 +204,9 @@ public class RichTextEditor extends ScrollView {
 					String str2 = preEdit.getText().toString();
 
 					// 合并文本view时，不需要transition动画
-					//allLayout.setLayoutTransition(null);
+					allLayout.setLayoutTransition(null);
 					allLayout.removeView(editTxt);
-					//allLayout.setLayoutTransition(mTransitioner); // 恢复transition动画
+					allLayout.setLayoutTransition(mTransitioner); // 恢复transition动画
 
 					// 文本合并
 					preEdit.setText(str2 + str1);
@@ -241,7 +242,7 @@ public class RichTextEditor extends ScrollView {
 	 * @type 删除类型 0代表backspace删除 1代表按红叉按钮删除
 	 */
 	private void onImageCloseClick(View view) {
-		//if (!mTransitioner.isRunning()) {
+		if (!mTransitioner.isRunning()) {
 			disappearingImageIndex = allLayout.indexOfChild(view);
 			//删除文件夹里的图片
 			List<EditData> dataList = buildEditData();
@@ -257,7 +258,7 @@ public class RichTextEditor extends ScrollView {
 			}
 			allLayout.removeView(view);
 			mergeEditText();//合并上下EditText内容
-		//}
+		}
 	}
 
 	/**
@@ -545,26 +546,26 @@ public class RichTextEditor extends ScrollView {
 	 */
 	private void setupLayoutTransitions() {
 		mTransitioner = new LayoutTransition();
-		//allLayout.setLayoutTransition(mTransitioner);
-//		mTransitioner.addTransitionListener(new TransitionListener() {
-//
-//			@Override
-//			public void startTransition(LayoutTransition transition,
-//					ViewGroup container, View view, int transitionType) {
-//
-//			}
-//
-//			@Override
-//			public void endTransition(LayoutTransition transition,
-//					ViewGroup container, View view, int transitionType) {
-//				if (!transition.isRunning()
-//						&& transitionType == LayoutTransition.CHANGE_DISAPPEARING) {
-//					// transition动画结束，合并EditText
-//					// mergeEditText();
-//				}
-//			}
-//		});
-//		mTransitioner.setDuration(300);
+		allLayout.setLayoutTransition(mTransitioner);
+		mTransitioner.addTransitionListener(new LayoutTransition.TransitionListener() {
+
+			@Override
+			public void startTransition(LayoutTransition transition,
+										ViewGroup container, View view, int transitionType) {
+
+			}
+
+			@Override
+			public void endTransition(LayoutTransition transition,
+					ViewGroup container, View view, int transitionType) {
+				if (!transition.isRunning()
+						&& transitionType == LayoutTransition.CHANGE_DISAPPEARING) {
+					// transition动画结束，合并EditText
+					 mergeEditText();
+				}
+			}
+		});
+		mTransitioner.setDuration(300);
 	}
 
 	/**
