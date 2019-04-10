@@ -40,17 +40,17 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.sendtion:XRichText:1.8'
+    implementation 'com.github.sendtion:XRichText:1.9.0'
 }
 ```
 
 如果出现support版本不一致问题，请排除XRichText中的support库，或者升级自己的support库为27.1.1版本。
-Glide版本为4.7.1，依赖于27版本库，如果你用的为低版本，同样的处理方式。
+Glide版本为4.9.0，依赖于27版本库，如果你用的为低版本，同样的处理方式。
 使用方式：
 ```
-implementation ('com.github.sendtion:XRichText:1.8') {
+implementation ('com.github.sendtion:XRichText:1.9.0') {
     exclude group: 'com.android.support'
-    exclude group: 'com.github.bumptech.glide'
+    exclude group: 'com.github.bumptech.glide' //当你的项目使用Glide4.0以下版本时建议添加此项
 }
 ```
 
@@ -170,6 +170,11 @@ tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListene
 ### 具体的使用方式，请参考Demo代码。
 
 ### 更新历史
+
+###  v1.9.0  2019.04.10
+- 编辑时支持关键词高亮
+- 修复插入图片时空指针异常
+- 代码异常处理
 
 #### v1.8  2018.12.02
 - 修复编辑时设置文字颜色无效的问题
