@@ -2,16 +2,16 @@ package com.sendtion.xrichtext;
 
 import android.animation.LayoutTransition;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
-import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.text.Spannable;
+import android.text.SpannableStringBuilder;
+import android.text.TextUtils;
+import android.text.style.CharacterStyle;
+import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -25,22 +25,13 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
-import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-//import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.FutureTarget;
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.target.Target;
-import com.bumptech.glide.request.transition.Transition;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+//import com.bumptech.glide.request.animation.GlideAnimation;
 
 /**
  * Created by sendtion on 2016/6/24.
@@ -50,7 +41,6 @@ import java.util.concurrent.ExecutionException;
  */
 @SuppressLint({ "NewApi", "InflateParams" })
 public class RichTextEditor extends ScrollView {
-	private Activity activity;
 	private static final int EDIT_PADDING = 10; // edittext常规padding是10dp
 	//private static final int EDIT_FIRST_PADDING_TOP = 10; // 第一个EditText的paddingTop值
 	//private static final int BOTTOM_MARGIN = 10;
@@ -67,6 +57,7 @@ public class RichTextEditor extends ScrollView {
 	private int disappearingImageIndex = 0;
 	//private Bitmap bmp;
 	private ArrayList<String> imagePaths;//图片地址集合
+	private String keywords;//关键词高亮
 
 	/** 自定义属性 **/
 	//插入的图片显示高度
@@ -106,7 +97,6 @@ public class RichTextEditor extends ScrollView {
 
 		ta.recycle();
 
-		activity = (Activity) context;
 		//onDeleteImageListener = (RichTextEditor.OnDeleteImageListener) context;
 
 		imagePaths = new ArrayList<>();
@@ -187,34 +177,38 @@ public class RichTextEditor extends ScrollView {
 	 * @param editTxt 光标所在的文本输入框
 	 */
 	private void onBackspacePress(EditText editTxt) {
-		int startSelection = editTxt.getSelectionStart();
-		// 只有在光标已经顶到文本输入框的最前方，在判定是否删除之前的图片，或两个View合并
-		if (startSelection == 0) {
-			int editIndex = allLayout.indexOfChild(editTxt);
-			View preView = allLayout.getChildAt(editIndex - 1); // 如果editIndex-1<0,
-																// 则返回的是null
-			if (null != preView) {
-				if (preView instanceof RelativeLayout) {
-					// 光标EditText的上一个view对应的是图片
-					onImageCloseClick(preView);
-				} else if (preView instanceof EditText) {
-					// 光标EditText的上一个view对应的还是文本框EditText
-					String str1 = editTxt.getText().toString();
-					EditText preEdit = (EditText) preView;
-					String str2 = preEdit.getText().toString();
+		try {
+			int startSelection = editTxt.getSelectionStart();
+			// 只有在光标已经顶到文本输入框的最前方，在判定是否删除之前的图片，或两个View合并
+			if (startSelection == 0) {
+				int editIndex = allLayout.indexOfChild(editTxt);
+				View preView = allLayout.getChildAt(editIndex - 1); // 如果editIndex-1<0,
+																	// 则返回的是null
+				if (null != preView) {
+					if (preView instanceof RelativeLayout) {
+						// 光标EditText的上一个view对应的是图片
+						onImageCloseClick(preView);
+					} else if (preView instanceof EditText) {
+						// 光标EditText的上一个view对应的还是文本框EditText
+						String str1 = editTxt.getText().toString();
+						EditText preEdit = (EditText) preView;
+						String str2 = preEdit.getText().toString();
 
-					// 合并文本view时，不需要transition动画
-					allLayout.setLayoutTransition(null);
-					allLayout.removeView(editTxt);
-					allLayout.setLayoutTransition(mTransitioner); // 恢复transition动画
+						// 合并文本view时，不需要transition动画
+						allLayout.setLayoutTransition(null);
+						allLayout.removeView(editTxt);
+						allLayout.setLayoutTransition(mTransitioner); // 恢复transition动画
 
-					// 文本合并
-					preEdit.setText(str2 + str1);
-					preEdit.requestFocus();
-					preEdit.setSelection(str2.length(), str2.length());
-					lastFocusEdit = preEdit;
+						// 文本合并
+						preEdit.setText(String.valueOf(str2 + str1));
+						preEdit.requestFocus();
+						preEdit.setSelection(str2.length(), str2.length());
+						lastFocusEdit = preEdit;
+					}
 				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -237,33 +231,34 @@ public class RichTextEditor extends ScrollView {
 	/**
 	 * 处理图片叉掉的点击事件
 	 * 
-	 * @param view
-	 *            整个image对应的relativeLayout view
+	 * @param view 整个image对应的relativeLayout view
 	 * @type 删除类型 0代表backspace删除 1代表按红叉按钮删除
 	 */
 	private void onImageCloseClick(View view) {
-		if (!mTransitioner.isRunning()) {
-			disappearingImageIndex = allLayout.indexOfChild(view);
-			//删除文件夹里的图片
-			List<EditData> dataList = buildEditData();
-			EditData editData = dataList.get(disappearingImageIndex);
-			//Log.i("", "###editData: "+editData);
-			if (editData.imagePath != null){
-				if (onRtImageDeleteListener != null){
-					//TODO 通过接口回调，在笔记编辑界面处理图片的删除操作
-					onRtImageDeleteListener.onRtImageDelete(editData.imagePath);
+		try {
+			if (!mTransitioner.isRunning()) {
+				disappearingImageIndex = allLayout.indexOfChild(view);
+				//删除文件夹里的图片
+				List<EditData> dataList = buildEditData();
+				EditData editData = dataList.get(disappearingImageIndex);
+				if (editData.imagePath != null){
+					if (onRtImageDeleteListener != null){
+						//TODO 通过接口回调，在笔记编辑界面处理图片的删除操作
+						onRtImageDeleteListener.onRtImageDelete(editData.imagePath);
+					}
+					//SDCardUtil.deleteFile(editData.imagePath);
+					imagePaths.remove(editData.imagePath);
 				}
-				//SDCardUtil.deleteFile(editData.imagePath);
-				imagePaths.remove(editData.imagePath);
+				allLayout.removeView(view);
+				mergeEditText();//合并上下EditText内容
 			}
-			allLayout.removeView(view);
-			mergeEditText();//合并上下EditText内容
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
 	/**
 	 * 处理图片点击事件
-	 * @param imageView
      */
 	private void onImageClick(DataImageView imageView) {
 		//int currentItem = imagePaths.indexOf(imageView.getAbsolutePath());
@@ -293,7 +288,6 @@ public class RichTextEditor extends ScrollView {
 
 	/**
 	 * 获取索引位置
-	 * @return
      */
 	public int getLastIndex(){
 		int lastEditIndex = allLayout.getChildCount();
@@ -335,10 +329,11 @@ public class RichTextEditor extends ScrollView {
 
 	/**
 	 * 根据绝对路径添加view
-	 * 
-	 * @param imagePath
 	 */
 	public void insertImage(String imagePath, int width) {
+		if (TextUtils.isEmpty(imagePath)){
+			return;
+		}
 		Bitmap bmp = getScaledBitmap(imagePath, width);
 		insertImage(bmp, imagePath);
 	}
@@ -347,49 +342,85 @@ public class RichTextEditor extends ScrollView {
 	 * 插入一张图片
 	 */
 	public void insertImage(Bitmap bitmap, String imagePath) {
-		//lastFocusEdit获取焦点的EditText
-		String lastEditStr = lastFocusEdit.getText().toString();
-		int cursorIndex = lastFocusEdit.getSelectionStart();//获取光标所在位置
-		String editStr1 = lastEditStr.substring(0, cursorIndex).trim();//获取光标前面的字符串
-		String editStr2 = lastEditStr.substring(cursorIndex).trim();//获取光标后的字符串
-		int lastEditIndex = allLayout.indexOfChild(lastFocusEdit);//获取焦点的EditText所在位置
-
-		if (lastEditStr.length() == 0) {
-			//如果当前获取焦点的EditText为空，直接在EditText下方插入图片，并且插入空的EditText
-			addEditTextAtIndex(lastEditIndex + 1, "");
-			addImageViewAtIndex(lastEditIndex + 1, bitmap, imagePath);
-		} else if (editStr1.length() == 0) {
-			//如果光标已经顶在了editText的最前面，则直接插入图片，并且EditText下移即可
-			addImageViewAtIndex(lastEditIndex, bitmap, imagePath);
-			//同时插入一个空的EditText，防止插入多张图片无法写文字
-			addEditTextAtIndex(lastEditIndex + 1, "");
-		} else if (editStr2.length() == 0) {
-			// 如果光标已经顶在了editText的最末端，则需要添加新的imageView和EditText
-			addEditTextAtIndex(lastEditIndex + 1, "");
-			addImageViewAtIndex(lastEditIndex + 1, bitmap, imagePath);
-		} else {
-			//如果光标已经顶在了editText的最中间，则需要分割字符串，分割成两个EditText，并在两个EditText中间插入图片
-			//把光标前面的字符串保留，设置给当前获得焦点的EditText（此为分割出来的第一个EditText）
-			lastFocusEdit.setText(editStr1);
-			//把光标后面的字符串放在新创建的EditText中（此为分割出来的第二个EditText）
-			addEditTextAtIndex(lastEditIndex + 1, editStr2);
-			//在第二个EditText的位置插入一个空的EditText，以便连续插入多张图片时，有空间写文字，第二个EditText下移
-			addEditTextAtIndex(lastEditIndex + 1, "");
-			//在空的EditText的位置插入图片布局，空的EditText下移
-			addImageViewAtIndex(lastEditIndex + 1, bitmap, imagePath);
+		//bitmap == null时，可能是网络图片，不能做限制
+		if (TextUtils.isEmpty(imagePath)){
+			return;
 		}
-		hideKeyBoard();
+		try {
+			//lastFocusEdit获取焦点的EditText
+			String lastEditStr = lastFocusEdit.getText().toString();
+			int cursorIndex = lastFocusEdit.getSelectionStart();//获取光标所在位置
+			String editStr1 = lastEditStr.substring(0, cursorIndex).trim();//获取光标前面的字符串
+			String editStr2 = lastEditStr.substring(cursorIndex).trim();//获取光标后的字符串
+			int lastEditIndex = allLayout.indexOfChild(lastFocusEdit);//获取焦点的EditText所在位置
+
+			if (lastEditStr.length() == 0) {
+				//如果当前获取焦点的EditText为空，直接在EditText下方插入图片，并且插入空的EditText
+				addEditTextAtIndex(lastEditIndex + 1, "");
+				addImageViewAtIndex(lastEditIndex + 1, bitmap, imagePath);
+			} else if (editStr1.length() == 0) {
+				//如果光标已经顶在了editText的最前面，则直接插入图片，并且EditText下移即可
+				addImageViewAtIndex(lastEditIndex, bitmap, imagePath);
+				//同时插入一个空的EditText，防止插入多张图片无法写文字
+				addEditTextAtIndex(lastEditIndex + 1, "");
+			} else if (editStr2.length() == 0) {
+				// 如果光标已经顶在了editText的最末端，则需要添加新的imageView和EditText
+				addEditTextAtIndex(lastEditIndex + 1, "");
+				addImageViewAtIndex(lastEditIndex + 1, bitmap, imagePath);
+			} else {
+				//如果光标已经顶在了editText的最中间，则需要分割字符串，分割成两个EditText，并在两个EditText中间插入图片
+				//把光标前面的字符串保留，设置给当前获得焦点的EditText（此为分割出来的第一个EditText）
+				lastFocusEdit.setText(editStr1);
+				//把光标后面的字符串放在新创建的EditText中（此为分割出来的第二个EditText）
+				addEditTextAtIndex(lastEditIndex + 1, editStr2);
+				//在第二个EditText的位置插入一个空的EditText，以便连续插入多张图片时，有空间写文字，第二个EditText下移
+				addEditTextAtIndex(lastEditIndex + 1, "");
+				//在空的EditText的位置插入图片布局，空的EditText下移
+				addImageViewAtIndex(lastEditIndex + 1, bitmap, imagePath);
+			}
+			hideKeyBoard();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
 	 * 隐藏小键盘
 	 */
 	public void hideKeyBoard() {
-		InputMethodManager imm = (InputMethodManager) getContext()
-				.getSystemService(Context.INPUT_METHOD_SERVICE);
+		InputMethodManager imm = (InputMethodManager) getContext().getSystemService(Context.INPUT_METHOD_SERVICE);
 		if (imm != null && lastFocusEdit != null) {
 			imm.hideSoftInputFromWindow(lastFocusEdit.getWindowToken(), 0);
 		}
+	}
+
+	/**
+	 * 关键字高亮显示
+	 * @param target  需要高亮的关键字
+	 * @param text	     需要显示的文字
+	 * @return spannable 处理完后的结果，记得不要toString()，否则没有效果
+	 * SpannableStringBuilder textString = TextUtilTools.highlight(item.getItemName(), KnowledgeActivity.searchKey);
+	 * vHolder.tv_itemName_search.setText(textString);
+	 */
+	public static SpannableStringBuilder highlight(String text, String target) {
+		SpannableStringBuilder spannable = new SpannableStringBuilder(text);
+		CharacterStyle span;
+		try {
+			Pattern p = Pattern.compile(target);
+			Matcher m = p.matcher(text);
+			while (m.find()) {
+				span = new ForegroundColorSpan(Color.parseColor("#EE5C42"));// 需要重复！
+				spannable.setSpan(span, m.start(), m.end(),
+						Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return spannable;
+	}
+
+	public void setKeywords(String keywords) {
+		this.keywords = keywords;
 	}
 
 	/**
@@ -401,126 +432,145 @@ public class RichTextEditor extends ScrollView {
 	 *            EditText显示的文字
 	 */
 	public void addEditTextAtIndex(final int index, CharSequence editStr) {
-		EditText editText2 = createEditText("插入文字", EDIT_PADDING);
-		//判断插入的字符串是否为空，如果没有内容则显示hint提示信息
-		if (editStr != null && editStr.length() > 0){
-			editText2.setText(editStr);
-		}
-		editText2.setOnFocusChangeListener(focusListener);
+		try {
+			EditText editText2 = createEditText("插入文字", EDIT_PADDING);
+			if (!TextUtils.isEmpty(keywords)) {//搜索关键词高亮
+				SpannableStringBuilder textStr = highlight(editStr.toString(), keywords);
+				editText2.setText(textStr);
+			} else if (!TextUtils.isEmpty(editStr)) {//判断插入的字符串是否为空，如果没有内容则显示hint提示信息
+				editText2.setText(editStr);
+			}
+			editText2.setOnFocusChangeListener(focusListener);
 
-		// 请注意此处，EditText添加、或删除不触动Transition动画
-		allLayout.setLayoutTransition(null);
-		allLayout.addView(editText2, index);
-		allLayout.setLayoutTransition(mTransitioner); // remove之后恢复transition动画
-		//插入新的EditText之后，修改lastFocusEdit的指向
-		lastFocusEdit = editText2;
-		lastFocusEdit.requestFocus();
-		lastFocusEdit.setSelection(editStr.length(), editStr.length());
+			// 请注意此处，EditText添加、或删除不触动Transition动画
+			allLayout.setLayoutTransition(null);
+			allLayout.addView(editText2, index);
+			allLayout.setLayoutTransition(mTransitioner); // remove之后恢复transition动画
+			//插入新的EditText之后，修改lastFocusEdit的指向
+			lastFocusEdit = editText2;
+			lastFocusEdit.requestFocus();
+			lastFocusEdit.setSelection(editStr.length(), editStr.length());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**
 	 * 在特定位置添加ImageView
 	 */
 	public void addImageViewAtIndex(final int index, Bitmap bmp, String imagePath) {
-		imagePaths.add(imagePath);
-		RelativeLayout imageLayout = createImageLayout();
-		DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
-		GlideApp.with(getContext()).load(imagePath).centerCrop().into(imageView);
-		imageView.setAbsolutePath(imagePath);
-		imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);//裁剪剧中
-
-		// 调整imageView的高度，根据宽度等比获得高度
-		int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
-		if (rtImageHeight > 0) {
-			imageHeight = rtImageHeight;
-		} else {
-			imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+		//bitmap == null时，可能是网络图片，不能做限制
+		if (TextUtils.isEmpty(imagePath)){
+			return;
 		}
-		//int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
-		RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-				LayoutParams.MATCH_PARENT, imageHeight);//TODO 固定图片高度500，考虑自定义属性
-		lp.bottomMargin = rtImageBottom;
-		imageView.setLayoutParams(lp);
+		try {
+			imagePaths.add(imagePath);
+			RelativeLayout imageLayout = createImageLayout();
+			DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
+			GlideApp.with(getContext()).load(imagePath).centerCrop().into(imageView);
+			imageView.setAbsolutePath(imagePath);
+			imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);//裁剪剧中
 
-		if (rtImageHeight > 0){
-			GlideApp.with(getContext()).load(imagePath).centerCrop()
-					.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
-		} else {
-			GlideApp.with(getContext()).load(imagePath)
-					.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+			// 调整imageView的高度，根据宽度等比获得高度
+			int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
+			if (rtImageHeight > 0) {
+				imageHeight = rtImageHeight;
+			} else {
+				imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+			}
+			//int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+			RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+					LayoutParams.MATCH_PARENT, imageHeight);//TODO 固定图片高度500，考虑自定义属性
+			lp.bottomMargin = rtImageBottom;
+			imageView.setLayoutParams(lp);
+
+			if (rtImageHeight > 0){
+				GlideApp.with(getContext()).load(imagePath).centerCrop()
+						.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+			} else {
+				GlideApp.with(getContext()).load(imagePath)
+						.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+			}
+
+			// onActivityResult无法触发动画，此处post处理
+			allLayout.addView(imageLayout, index);
+//			allLayout.postDelayed(new Runnable() {
+//				@Override
+//				public void run() {
+//					allLayout.addView(imageLayout, index);
+//				}
+//			}, 200);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-
-		// onActivityResult无法触发动画，此处post处理
-		allLayout.addView(imageLayout, index);
-//		allLayout.postDelayed(new Runnable() {
-//			@Override
-//			public void run() {
-//				allLayout.addView(imageLayout, index);
-//			}
-//		}, 200);
 	}
 
 	/**
 	 * 在特定位置添加ImageView
 	 */
 	public void addImageViewAtIndex(final int index, final String imagePath) {
-		imagePaths.add(imagePath);
-		RelativeLayout imageLayout = createImageLayout();
-		final DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
-		imageView.setAbsolutePath(imagePath);
-
-		//如果是网络图片
-//		if (imagePath.startsWith("http://") || imagePath.startsWith("https://")){
-//
-//			// 调整imageView的高度，根据宽度等比获得高度
-//			//int imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
-//			RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-//					LayoutParams.MATCH_PARENT, 500);//固定图片高度，记得设置裁剪剧中
-//			lp.bottomMargin = 10;
-//			imageView.setLayoutParams(lp);
-//
-//			GlideApp.with(getContext()).load(imagePath).centerCrop()
-//					.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail)
-//					.override(Target.SIZE_ORIGINAL, 500).into(imageView);
-//
-//		} else { //如果是本地图片
-//
-//			// 调整imageView的高度，根据宽度等比获得高度
-//            //Bitmap bmp = BitmapFactory.decodeFile(imagePath);
-//			//int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
-//			RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-//					LayoutParams.MATCH_PARENT, 500);//固定图片高度，记得设置裁剪剧中
-//			lp.bottomMargin = 10;
-//			imageView.setLayoutParams(lp);
-//
-//			GlideApp.with(getContext()).load(imagePath).centerCrop()
-//					.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
-//		}
-
-		// 调整imageView的高度，根据宽度等比获得高度
-		int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
-		if (rtImageHeight > 0) {
-			imageHeight = rtImageHeight;
-		} else {
-			Bitmap bmp = BitmapFactory.decodeFile(imagePath);
-			imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+		if (TextUtils.isEmpty(imagePath)){
+			return;
 		}
-        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-                LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
-        lp.bottomMargin = rtImageBottom;
-        imageView.setLayoutParams(lp);
+		try {
+			imagePaths.add(imagePath);
+			RelativeLayout imageLayout = createImageLayout();
+			final DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
+			imageView.setAbsolutePath(imagePath);
 
-//        GlideApp.with(getContext()).load(imagePath).centerCrop()
-//                .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
-		if (rtImageHeight > 0){
-			GlideApp.with(getContext()).load(imagePath).centerCrop()
-					.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
-		} else {
-			GlideApp.with(getContext()).load(imagePath)
-					.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+			//如果是网络图片
+//			if (imagePath.startsWith("http://") || imagePath.startsWith("https://")){
+//
+//				// 调整imageView的高度，根据宽度等比获得高度
+//				//int imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
+//				RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+//						LayoutParams.MATCH_PARENT, 500);//固定图片高度，记得设置裁剪剧中
+//				lp.bottomMargin = 10;
+//				imageView.setLayoutParams(lp);
+//
+//				GlideApp.with(getContext()).load(imagePath).centerCrop()
+//						.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail)
+//						.override(Target.SIZE_ORIGINAL, 500).into(imageView);
+//
+//			} else { //如果是本地图片
+//
+//				// 调整imageView的高度，根据宽度等比获得高度
+//				//Bitmap bmp = BitmapFactory.decodeFile(imagePath);
+//				//int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+//				RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+//						LayoutParams.MATCH_PARENT, 500);//固定图片高度，记得设置裁剪剧中
+//				lp.bottomMargin = 10;
+//				imageView.setLayoutParams(lp);
+//
+//				GlideApp.with(getContext()).load(imagePath).centerCrop()
+//						.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+//			}
+
+			// 调整imageView的高度，根据宽度等比获得高度
+			int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
+			if (rtImageHeight > 0) {
+				imageHeight = rtImageHeight;
+			} else {
+				Bitmap bmp = BitmapFactory.decodeFile(imagePath);
+				imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+			}
+			RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+					LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
+			lp.bottomMargin = rtImageBottom;
+			imageView.setLayoutParams(lp);
+
+			if (rtImageHeight > 0){
+				GlideApp.with(getContext()).load(imagePath).centerCrop()
+						.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+			} else {
+				GlideApp.with(getContext()).load(imagePath)
+						.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+			}
+			// onActivityResult无法触发动画，此处post处理
+			allLayout.addView(imageLayout, index);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		// onActivityResult无法触发动画，此处post处理
-		allLayout.addView(imageLayout, index);
 
 	}
 
@@ -531,13 +581,20 @@ public class RichTextEditor extends ScrollView {
 	 *            view的宽度
 	 */
 	public Bitmap getScaledBitmap(String filePath, int width) {
+		if (TextUtils.isEmpty(filePath)){
+			return null;
+		}
 		BitmapFactory.Options options = new BitmapFactory.Options();
-		options.inJustDecodeBounds = true;
-		BitmapFactory.decodeFile(filePath, options);
-		int sampleSize = options.outWidth > width ? options.outWidth / width
-				+ 1 : 1;
-		options.inJustDecodeBounds = false;
-		options.inSampleSize = sampleSize;
+		try {
+			options.inJustDecodeBounds = true;
+			BitmapFactory.decodeFile(filePath, options);
+			int sampleSize = options.outWidth > width ? options.outWidth / width
+					+ 1 : 1;
+			options.inJustDecodeBounds = false;
+			options.inSampleSize = sampleSize;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 		return BitmapFactory.decodeFile(filePath, options);
 	}
 
@@ -572,28 +629,31 @@ public class RichTextEditor extends ScrollView {
 	 * 图片删除的时候，如果上下方都是EditText，则合并处理
 	 */
 	private void mergeEditText() {
-		View preView = allLayout.getChildAt(disappearingImageIndex - 1);
-		View nextView = allLayout.getChildAt(disappearingImageIndex);
-		if (preView != null && preView instanceof EditText && null != nextView
-				&& nextView instanceof EditText) {
-			Log.d("LeiTest", "合并EditText");
-			EditText preEdit = (EditText) preView;
-			EditText nextEdit = (EditText) nextView;
-			String str1 = preEdit.getText().toString();
-			String str2 = nextEdit.getText().toString();
-			String mergeText = "";
-			if (str2.length() > 0) {
-				mergeText = str1 + "\n" + str2;
-			} else {
-				mergeText = str1;
-			}
+		try {
+			View preView = allLayout.getChildAt(disappearingImageIndex - 1);
+			View nextView = allLayout.getChildAt(disappearingImageIndex);
+			if (preView instanceof EditText && nextView instanceof EditText) {
+				Log.d("LeiTest", "合并EditText");
+				EditText preEdit = (EditText) preView;
+				EditText nextEdit = (EditText) nextView;
+				String str1 = preEdit.getText().toString();
+				String str2 = nextEdit.getText().toString();
+				String mergeText = "";
+				if (str2.length() > 0) {
+					mergeText = str1 + "\n" + str2;
+				} else {
+					mergeText = str1;
+				}
 
-			allLayout.setLayoutTransition(null);
-			allLayout.removeView(nextEdit);
-			preEdit.setText(mergeText);
-			preEdit.requestFocus();
-			preEdit.setSelection(str1.length(), str1.length());
-			allLayout.setLayoutTransition(mTransitioner);
+				allLayout.setLayoutTransition(null);
+				allLayout.removeView(nextEdit);
+				preEdit.setText(mergeText);
+				preEdit.requestFocus();
+				preEdit.setSelection(str1.length(), str1.length());
+				allLayout.setLayoutTransition(mTransitioner);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -602,19 +662,23 @@ public class RichTextEditor extends ScrollView {
 	 */
 	public List<EditData> buildEditData() {
 		List<EditData> dataList = new ArrayList<EditData>();
-		int num = allLayout.getChildCount();
-		for (int index = 0; index < num; index++) {
-			View itemView = allLayout.getChildAt(index);
-			EditData itemData = new EditData();
-			if (itemView instanceof EditText) {
-				EditText item = (EditText) itemView;
-				itemData.inputStr = item.getText().toString();
-			} else if (itemView instanceof RelativeLayout) {
-				DataImageView item = (DataImageView) itemView.findViewById(R.id.edit_imageView);
-				itemData.imagePath = item.getAbsolutePath();
-				//itemData.bitmap = item.getBitmap();//去掉这个防止bitmap一直被占用，导致内存溢出
+		try {
+			int num = allLayout.getChildCount();
+			for (int index = 0; index < num; index++) {
+				View itemView = allLayout.getChildAt(index);
+				EditData itemData = new EditData();
+				if (itemView instanceof EditText) {
+					EditText item = (EditText) itemView;
+					itemData.inputStr = item.getText().toString();
+				} else if (itemView instanceof RelativeLayout) {
+					DataImageView item = (DataImageView) itemView.findViewById(R.id.edit_imageView);
+					itemData.imagePath = item.getAbsolutePath();
+					//itemData.bitmap = item.getBitmap();//去掉这个防止bitmap一直被占用，导致内存溢出
+				}
+				dataList.add(itemData);
 			}
-			dataList.add(itemData);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 		return dataList;

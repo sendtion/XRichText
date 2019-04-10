@@ -1,13 +1,11 @@
 package com.sendtion.xrichtext;
 
 import android.animation.LayoutTransition;
-import android.app.Activity;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.text.Spannable;
@@ -16,7 +14,6 @@ import android.text.TextUtils;
 import android.text.style.CharacterStyle;
 import android.text.style.ForegroundColorSpan;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -26,26 +23,21 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
-//import com.bumptech.glide.request.animation.GlideAnimation;
-import com.bumptech.glide.request.FutureTarget;
 import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
 
 import java.util.ArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+//import com.bumptech.glide.request.animation.GlideAnimation;
 
 /**
  * Created by sendtion on 2016/6/24.
  * 显示富文本
  */
 public class RichTextView extends ScrollView {
-    private Activity activity;
     private static final int EDIT_PADDING = 10; // edittext常规padding是10dp
     //private static final int EDIT_FIRST_PADDING_TOP = 10; // 第一个EditText的paddingTop值
 
@@ -98,7 +90,6 @@ public class RichTextView extends ScrollView {
 
         ta.recycle();
 
-        activity = (Activity) context;
         imagePaths = new ArrayList<>();
 
         inflater = LayoutInflater.from(context);
@@ -166,7 +157,6 @@ public class RichTextView extends ScrollView {
 
     /**
      * 获得最后一个子view的位置
-     * @return
      */
     public int getLastIndex(){
         int lastEditIndex = allLayout.getChildCount();
@@ -192,8 +182,7 @@ public class RichTextView extends ScrollView {
      * 生成图片View
      */
     private RelativeLayout createImageLayout() {
-        RelativeLayout layout = (RelativeLayout) inflater.inflate(
-                R.layout.edit_imageview, null);
+        RelativeLayout layout = (RelativeLayout) inflater.inflate(R.layout.edit_imageview, null);
         layout.setTag(viewTagIndex++);
         View closeView = layout.findViewById(R.id.image_close);
         closeView.setVisibility(GONE);
@@ -214,13 +203,16 @@ public class RichTextView extends ScrollView {
     public static SpannableStringBuilder highlight(String text, String target) {
         SpannableStringBuilder spannable = new SpannableStringBuilder(text);
         CharacterStyle span;
-
-        Pattern p = Pattern.compile(target);
-        Matcher m = p.matcher(text);
-        while (m.find()) {
-            span = new ForegroundColorSpan(Color.parseColor("#EE5C42"));// 需要重复！
-            spannable.setSpan(span, m.start(), m.end(),
-                    Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        try {
+            Pattern p = Pattern.compile(target);
+            Matcher m = p.matcher(text);
+            while (m.find()) {
+                span = new ForegroundColorSpan(Color.parseColor("#EE5C42"));// 需要重复！
+                spannable.setSpan(span, m.start(), m.end(),
+                        Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return spannable;
     }
@@ -232,32 +224,40 @@ public class RichTextView extends ScrollView {
     /**
      * 在特定位置插入EditText
      *
-     * @param index
-     *            位置
-     * @param editStr
-     *            EditText显示的文字
+     * @param index 位置
+     * @param editStr EditText显示的文字
      */
     public void addTextViewAtIndex(final int index, CharSequence editStr) {
-        TextView textView = createTextView("", EDIT_PADDING);
-        if (!TextUtils.isEmpty(keywords)) {//搜索关键词高亮
-            SpannableStringBuilder textStr = highlight(editStr.toString(), keywords);
-            textView.setText(textStr);
-        } else {
-            textView.setText(editStr);
-        }
+        try {
+            TextView textView = createTextView("", EDIT_PADDING);
+            if (!TextUtils.isEmpty(keywords)) {//搜索关键词高亮
+                SpannableStringBuilder textStr = highlight(editStr.toString(), keywords);
+                textView.setText(textStr);
+            } else {
+                textView.setText(editStr);
+            }
 
-        // 请注意此处，EditText添加、或删除不触动Transition动画
-        //allLayout.setLayoutTransition(null);
-        allLayout.addView(textView, index);
-        //allLayout.setLayoutTransition(mTransitioner); // remove之后恢复transition动画
+            // 请注意此处，EditText添加、或删除不触动Transition动画
+            //allLayout.setLayoutTransition(null);
+            allLayout.addView(textView, index);
+            //allLayout.setLayoutTransition(mTransitioner); // remove之后恢复transition动画
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * 在特定位置添加ImageView
      */
     public void addImageViewAtIndex(final int index, final String imagePath) {
+        if (TextUtils.isEmpty(imagePath)){
+            return;
+        }
         imagePaths.add(imagePath);
         RelativeLayout imageLayout = createImageLayout();
+        if (imageLayout == null){
+            return;
+        }
         final DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
         imageView.setAbsolutePath(imagePath);
 
@@ -268,51 +268,56 @@ public class RichTextView extends ScrollView {
                     .into(new SimpleTarget<Bitmap>() {
                         @Override
                         public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            //调整imageView的高度，根据宽度等比获得高度
-                            int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
-                            if (rtImageHeight > 0) {
-                                imageHeight = rtImageHeight;
-                            } else {
-                                imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
-                            }
-                            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-                                    LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
-                            lp.bottomMargin = rtImageBottom;
-                            imageView.setLayoutParams(lp);
+                            try {
+                                //调整imageView的高度，根据宽度等比获得高度
+                                int imageHeight; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
+                                if (rtImageHeight > 0) {
+                                    imageHeight = rtImageHeight;
+                                } else {
+                                    imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
+                                }
+                                RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+                                        LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
+                                lp.bottomMargin = rtImageBottom;
+                                imageView.setLayoutParams(lp);
 
-                            if (rtImageHeight > 0) {
-                                imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                            } else {
-                                imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                                if (rtImageHeight > 0) {
+                                    imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+                                } else {
+                                    imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+                                }
+                                imageView.setImageBitmap(resource);
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
-                            imageView.setImageBitmap(resource);
-                            // 不能使用centerCrop，否则图片显示不全
-//							GlideApp.with(getContext()).load(imagePath)
-//									.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail)
-//									.override(Target.SIZE_ORIGINAL, imageHeight).into(imageView);
                         }
                     });
         } else { //如果是本地图片
+            try {
+                // 调整imageView的高度，根据宽度等比获得高度
+                Bitmap bmp = BitmapFactory.decodeFile(imagePath);
+                if (bmp != null) {
+                    int imageHeight; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
+                    if (rtImageHeight > 0) {
+                        imageHeight = rtImageHeight;
+                    } else {
+                        imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+                    }
+                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+                            LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
+                    lp.bottomMargin = rtImageBottom;
+                    imageView.setLayoutParams(lp);
 
-            // 调整imageView的高度，根据宽度等比获得高度
-            Bitmap bmp = BitmapFactory.decodeFile(imagePath);
-            int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
-            if (rtImageHeight > 0) {
-                imageHeight = rtImageHeight;
-            } else {
-                imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
-            }
-            RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-                    LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
-            lp.bottomMargin = rtImageBottom;
-            imageView.setLayoutParams(lp);
-
-            if (rtImageHeight > 0){
-                GlideApp.with(getContext()).load(imagePath).centerCrop()
-                        .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
-            } else {
-                GlideApp.with(getContext()).load(imagePath)
-                        .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+                    if (rtImageHeight > 0) {
+                        GlideApp.with(getContext()).load(imagePath).centerCrop()
+                                .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+                    } else {
+                        GlideApp.with(getContext()).load(imagePath)
+                                .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -323,17 +328,24 @@ public class RichTextView extends ScrollView {
     /**
      * 根据view的宽度，动态缩放bitmap尺寸
      *
-     * @param width
-     *            view的宽度
+     * @param width view的宽度
      */
     public Bitmap getScaledBitmap(String filePath, int width) {
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(filePath, options);
-        int sampleSize = options.outWidth > width ? options.outWidth / width
-                + 1 : 1;
-        options.inJustDecodeBounds = false;
-        options.inSampleSize = sampleSize;
+        if (TextUtils.isEmpty(filePath)){
+            return null;
+        }
+        BitmapFactory.Options options = null;
+        try {
+            options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeFile(filePath, options);
+            int sampleSize = options.outWidth > width ? options.outWidth / width
+                    + 1 : 1;
+            options.inJustDecodeBounds = false;
+            options.inSampleSize = sampleSize;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return BitmapFactory.decodeFile(filePath, options);
     }
 

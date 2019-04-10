@@ -6,8 +6,6 @@ import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.Menu;
@@ -32,8 +30,6 @@ import com.sendtion.xrichtextdemo.util.StringUtils;
 import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
 import com.zhihu.matisse.internal.entity.CaptureStrategy;
-
-import org.reactivestreams.Subscriber;
 
 import java.util.Date;
 import java.util.List;
@@ -116,45 +112,49 @@ public class NewActivity extends BaseActivity {
 
         openSoftKeyInput();//打开软键盘显示
 
-        Intent intent = getIntent();
-        flag = intent.getIntExtra("flag", 0);//0新建，1编辑
-        if (flag == 1){//编辑
-            setTitle("编辑笔记");
-            Bundle bundle = intent.getBundleExtra("data");
-            note = (Note) bundle.getSerializable("note");
+        try {
+            Intent intent = getIntent();
+            flag = intent.getIntExtra("flag", 0);//0新建，1编辑
+            if (flag == 1){//编辑
+                setTitle("编辑笔记");
+                Bundle bundle = intent.getBundleExtra("data");
+                note = (Note) bundle.getSerializable("note");
 
-            if (note != null) {
-                myTitle = note.getTitle();
-                myContent = note.getContent();
-                myNoteTime = note.getCreateTime();
-                Group group = groupDao.queryGroupById(note.getGroupId());
-                if (group != null){
-                    myGroupName = group.getName();
-                    tv_new_group.setText(myGroupName);
-                }
-
-                loadingDialog = new ProgressDialog(this);
-                loadingDialog.setMessage("数据加载中...");
-                loadingDialog.setCanceledOnTouchOutside(false);
-                loadingDialog.show();
-
-                tv_new_time.setText(note.getCreateTime());
-                et_new_title.setText(note.getTitle());
-                et_new_content.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        dealWithContent();
+                if (note != null) {
+                    myTitle = note.getTitle();
+                    myContent = note.getContent();
+                    myNoteTime = note.getCreateTime();
+                    Group group = groupDao.queryGroupById(note.getGroupId());
+                    if (group != null){
+                        myGroupName = group.getName();
+                        tv_new_group.setText(myGroupName);
                     }
-                });
+
+                    loadingDialog = new ProgressDialog(this);
+                    loadingDialog.setMessage("数据加载中...");
+                    loadingDialog.setCanceledOnTouchOutside(false);
+                    loadingDialog.show();
+
+                    tv_new_time.setText(note.getCreateTime());
+                    et_new_title.setText(note.getTitle());
+                    et_new_content.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            dealWithContent();
+                        }
+                    });
+                }
+            } else {
+                setTitle("新建笔记");
+                if (myGroupName == null || "全部笔记".equals(myGroupName)) {
+                    myGroupName = "默认笔记";
+                }
+                tv_new_group.setText(myGroupName);
+                myNoteTime = CommonUtil.date2string(new Date());
+                tv_new_time.setText(myNoteTime);
             }
-        } else {
-            setTitle("新建笔记");
-            if (myGroupName == null || "全部笔记".equals(myGroupName)) {
-                myGroupName = "默认笔记";
-            }
-            tv_new_group.setText(myGroupName);
-            myNoteTime = CommonUtil.date2string(new Date());
-            tv_new_time.setText(myNoteTime);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }
@@ -181,13 +181,17 @@ public class NewActivity extends BaseActivity {
         et_new_content.setOnRtImageClickListener(new RichTextEditor.OnRtImageClickListener() {
             @Override
             public void onRtImageClick(String imagePath) {
-                myContent = getEditData();
-                if (!TextUtils.isEmpty(myContent)){
-                    List<String> imageList = StringUtils.getTextFromHtml(myContent, true);
-                    if (!TextUtils.isEmpty(imagePath)) {
-                        int currentPosition = imageList.indexOf(imagePath);
-                        showToast("点击图片：" + currentPosition + "：" + imagePath);
+                try {
+                    myContent = getEditData();
+                    if (!TextUtils.isEmpty(myContent)){
+                        List<String> imageList = StringUtils.getTextFromHtml(myContent, true);
+                        if (!TextUtils.isEmpty(imagePath)) {
+                            int currentPosition = imageList.indexOf(imagePath);
+                            showToast("点击图片：" + currentPosition + "：" + imagePath);
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -265,16 +269,20 @@ public class NewActivity extends BaseActivity {
 
             @Override
             public void onNext(String text) {
-                if (et_new_content != null) {
-                    if (text.contains("<img") && text.contains("src=")) {
-                        //imagePath可能是本地路径，也可能是网络地址
-                        String imagePath = StringUtils.getImgSrc(text);
-                        //插入空的EditText，以便在图片前后插入文字
-                        et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), "");
-                        et_new_content.addImageViewAtIndex(et_new_content.getLastIndex(), imagePath);
-                    } else {
-                        et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), text);
+                try {
+                    if (et_new_content != null) {
+                        if (text.contains("<img") && text.contains("src=")) {
+                            //imagePath可能是本地路径，也可能是网络地址
+                            String imagePath = StringUtils.getImgSrc(text);
+                            //插入空的EditText，以便在图片前后插入文字
+                            et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), "");
+                            et_new_content.addImageViewAtIndex(et_new_content.getLastIndex(), imagePath);
+                        } else {
+                            et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), text);
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -301,14 +309,18 @@ public class NewActivity extends BaseActivity {
      * 负责处理编辑数据提交等事宜，请自行实现
      */
     private String getEditData() {
-        List<RichTextEditor.EditData> editList = et_new_content.buildEditData();
         StringBuilder content = new StringBuilder();
-        for (RichTextEditor.EditData itemData : editList) {
-            if (itemData.inputStr != null) {
-                content.append(itemData.inputStr);
-            } else if (itemData.imagePath != null) {
-                content.append("<img src=\"").append(itemData.imagePath).append("\"/>");
+        try {
+            List<RichTextEditor.EditData> editList = et_new_content.buildEditData();
+            for (RichTextEditor.EditData itemData : editList) {
+                if (itemData.inputStr != null) {
+                    content.append(itemData.inputStr);
+                } else if (itemData.imagePath != null) {
+                    content.append("<img src=\"").append(itemData.imagePath).append("\"/>");
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return content.toString();
     }
@@ -322,50 +334,54 @@ public class NewActivity extends BaseActivity {
         String groupName = tv_new_group.getText().toString();
         String noteTime = tv_new_time.getText().toString();
 
-        Group group = groupDao.queryGroupByName(myGroupName);
-        if (group != null) {
-            if (noteTitle.length() == 0 ){//如果标题为空，则截取内容为标题
-                if (noteContent.length() > cutTitleLength){
-                    noteTitle = noteContent.substring(0,cutTitleLength);
-                } else if (noteContent.length() > 0){
-                    noteTitle = noteContent;
-                }
-            }
-            int groupId = group.getId();
-            note.setTitle(noteTitle);
-            note.setContent(noteContent);
-            note.setGroupId(groupId);
-            note.setGroupName(groupName);
-            note.setType(2);
-            note.setBgColor("#FFFFFF");
-            note.setIsEncrypt(0);
-            note.setCreateTime(CommonUtil.date2string(new Date()));
-            if (flag == 0 ) {//新建笔记
-                if (noteTitle.length() == 0 && noteContent.length() == 0) {
-                    if (!isBackground){
-                        Toast.makeText(NewActivity.this, "请输入内容", Toast.LENGTH_SHORT).show();
+        try {
+            Group group = groupDao.queryGroupByName(myGroupName);
+            if (group != null) {
+                if (noteTitle.length() == 0 ){//如果标题为空，则截取内容为标题
+                    if (noteContent.length() > cutTitleLength){
+                        noteTitle = noteContent.substring(0,cutTitleLength);
+                    } else if (noteContent.length() > 0){
+                        noteTitle = noteContent;
                     }
-                } else {
-                    long noteId = noteDao.insertNote(note);
-                    //Log.i("", "noteId: "+noteId);
-                    //查询新建笔记id，防止重复插入
-                    note.setId((int) noteId);
-                    flag = 1;//插入以后只能是编辑
+                }
+                int groupId = group.getId();
+                note.setTitle(noteTitle);
+                note.setContent(noteContent);
+                note.setGroupId(groupId);
+                note.setGroupName(groupName);
+                note.setType(2);
+                note.setBgColor("#FFFFFF");
+                note.setIsEncrypt(0);
+                note.setCreateTime(CommonUtil.date2string(new Date()));
+                if (flag == 0 ) {//新建笔记
+                    if (noteTitle.length() == 0 && noteContent.length() == 0) {
+                        if (!isBackground){
+                            Toast.makeText(NewActivity.this, "请输入内容", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        long noteId = noteDao.insertNote(note);
+                        //Log.i("", "noteId: "+noteId);
+                        //查询新建笔记id，防止重复插入
+                        note.setId((int) noteId);
+                        flag = 1;//插入以后只能是编辑
+                        if (!isBackground){
+                            Intent intent = new Intent();
+                            setResult(RESULT_OK, intent);
+                            finish();
+                        }
+                    }
+                }else if (flag == 1) {//编辑笔记
+                    if (!noteTitle.equals(myTitle) || !noteContent.equals(myContent)
+                            || !groupName.equals(myGroupName) || !noteTime.equals(myNoteTime)) {
+                        noteDao.updateNote(note);
+                    }
                     if (!isBackground){
-                        Intent intent = new Intent();
-                        setResult(RESULT_OK, intent);
                         finish();
                     }
                 }
-            }else if (flag == 1) {//编辑笔记
-                if (!noteTitle.equals(myTitle) || !noteContent.equals(myContent)
-                        || !groupName.equals(myGroupName) || !noteTime.equals(myNoteTime)) {
-                    noteDao.updateNote(note);
-                }
-                if (!isBackground){
-                    finish();
-                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -435,7 +451,6 @@ public class NewActivity extends BaseActivity {
 
     /**
      * 异步方式插入图片
-     * @param data
      */
     private void insertImagesSync(final Intent data){
         insertDialog.show();
@@ -457,8 +472,8 @@ public class NewActivity extends BaseActivity {
                         emitter.onNext(imagePath);
                     }
 
-                    // 测试插入网络图片 http://p695w3yko.bkt.clouddn.com/18-5-5/44849367.jpg
-                    //subscriber.onNext("http://p695w3yko.bkt.clouddn.com/18-5-5/30271511.jpg");
+                    // 测试插入网络图片 http://pics.sc.chinaz.com/files/pic/pic9/201904/zzpic17414.jpg
+                    emitter.onNext("http://pics.sc.chinaz.com/files/pic/pic9/201903/zzpic16838.jpg");
 
                     emitter.onComplete();
                 }catch (Exception e){

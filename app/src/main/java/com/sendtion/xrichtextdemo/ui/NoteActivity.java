@@ -21,8 +21,6 @@ import com.sendtion.xrichtextdemo.db.NoteDao;
 import com.sendtion.xrichtextdemo.util.CommonUtil;
 import com.sendtion.xrichtextdemo.util.StringUtils;
 
-import org.reactivestreams.Subscription;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,27 +100,31 @@ public class NoteActivity extends BaseActivity {
         tv_note_time = (TextView) findViewById(R.id.tv_note_time);
         tv_note_group = (TextView) findViewById(R.id.tv_note_group);
 
-        Intent intent = getIntent();
-        Bundle bundle = intent.getBundleExtra("data");
-        note = (Note) bundle.getSerializable("note");
+        try {
+            Intent intent = getIntent();
+            Bundle bundle = intent.getBundleExtra("data");
+            note = (Note) bundle.getSerializable("note");
 
-        if (note != null) {
-            myTitle = note.getTitle();
-            myContent = note.getContent();
-            Group group = groupDao.queryGroupById(note.getGroupId());
-            if (group != null) {
-                myGroupName = group.getName();
-                tv_note_group.setText(myGroupName);
-            }
-
-            tv_note_title.setText(myTitle);
-            tv_note_content.post(new Runnable() {
-                @Override
-                public void run() {
-                    dealWithContent();
+            if (note != null) {
+                myTitle = note.getTitle();
+                myContent = note.getContent();
+                Group group = groupDao.queryGroupById(note.getGroupId());
+                if (group != null) {
+                    myGroupName = group.getName();
+                    tv_note_group.setText(myGroupName);
                 }
-            });
-            tv_note_time.setText(note.getCreateTime());
+
+                tv_note_title.setText(myTitle);
+                tv_note_content.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dealWithContent();
+                    }
+                });
+                tv_note_time.setText(note.getCreateTime());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }
@@ -136,9 +138,13 @@ public class NoteActivity extends BaseActivity {
         tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListener() {
             @Override
             public void onRtImageClick(String imagePath) {
-                ArrayList<String> imageList = StringUtils.getTextFromHtml(myContent, true);
-                int currentPosition = imageList.indexOf(imagePath);
-                showToast("点击图片："+currentPosition+"："+imagePath);
+                try {
+                    ArrayList<String> imageList = StringUtils.getTextFromHtml(myContent, true);
+                    int currentPosition = imageList.indexOf(imagePath);
+                    showToast("点击图片："+currentPosition+"："+imagePath);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
                 //点击图片预览
 //                PhotoPreview.builder()
@@ -189,14 +195,18 @@ public class NoteActivity extends BaseActivity {
 
             @Override
             public void onNext(String text) {
-                if (tv_note_content !=null) {
-                    if (text.contains("<img") && text.contains("src=")) {
-                        //imagePath可能是本地路径，也可能是网络地址
-                        String imagePath = StringUtils.getImgSrc(text);
-                        tv_note_content.addImageViewAtIndex(tv_note_content.getLastIndex(), imagePath);
-                    } else {
-                        tv_note_content.addTextViewAtIndex(tv_note_content.getLastIndex(), text);
+                try {
+                    if (tv_note_content !=null) {
+                        if (text.contains("<img") && text.contains("src=")) {
+                            //imagePath可能是本地路径，也可能是网络地址
+                            String imagePath = StringUtils.getImgSrc(text);
+                            tv_note_content.addImageViewAtIndex(tv_note_content.getLastIndex(), imagePath);
+                        } else {
+                            tv_note_content.addTextViewAtIndex(tv_note_content.getLastIndex(), text);
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         });
