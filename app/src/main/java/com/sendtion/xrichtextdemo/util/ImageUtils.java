@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
 
@@ -364,4 +365,18 @@ public class ImageUtils {
         return bitmap;
     }
 
+    public static Uri getUriFromPath(String imagePath) {
+        Uri uri = null;
+        if (!TextUtils.isEmpty(imagePath)){
+            if (imagePath.startsWith("http")){
+                uri = Uri.parse(imagePath);
+            } else {
+                File file = new File(imagePath);
+                if(file.exists()) {
+                    uri = Uri.fromFile(file);
+                }
+            }
+        }
+        return uri;
+    }
 }

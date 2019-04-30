@@ -114,7 +114,7 @@ public class RichTextView extends ScrollView {
                     //Toast.makeText(getContext(),"点击图片："+currentItem+"："+imageView.getAbsolutePath(), Toast.LENGTH_SHORT).show();
                     // 开放图片点击接口
                     if (onRtImageClickListener != null){
-                        onRtImageClickListener.onRtImageClick(imageView.getAbsolutePath());
+                        onRtImageClickListener.onRtImageClick(imageView, imageView.getAbsolutePath());
                     }
 
                     //点击图片预览
@@ -141,7 +141,7 @@ public class RichTextView extends ScrollView {
     }
 
     public interface OnRtImageClickListener{
-        void onRtImageClick(String imagePath);
+        void onRtImageClick(View view, String imagePath);
     }
 
     public void setOnRtImageClickListener(OnRtImageClickListener onRtImageClickListener) {
@@ -262,7 +262,7 @@ public class RichTextView extends ScrollView {
         imageView.setAbsolutePath(imagePath);
 
         //如果是网络图片
-        if (imagePath.startsWith("http://") || imagePath.startsWith("https://")){
+        if (imagePath.startsWith("http")){
 
             GlideApp.with(getContext()).asBitmap().load(imagePath).dontAnimate()
                     .into(new SimpleTarget<Bitmap>() {
@@ -274,7 +274,9 @@ public class RichTextView extends ScrollView {
                                 if (rtImageHeight > 0) {
                                     imageHeight = rtImageHeight;
                                 } else {
-                                    imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
+                                    int layoutWidth = allLayout.getWidth() - allLayout.getPaddingLeft() - allLayout.getPaddingRight();
+                                    imageHeight = layoutWidth * resource.getHeight() / resource.getWidth();
+                                    //imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
                                 }
                                 RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
                                         LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
@@ -301,7 +303,9 @@ public class RichTextView extends ScrollView {
                     if (rtImageHeight > 0) {
                         imageHeight = rtImageHeight;
                     } else {
-                        imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+                        int layoutWidth = allLayout.getWidth() - allLayout.getPaddingLeft() - allLayout.getPaddingRight();
+                        imageHeight = layoutWidth * bmp.getHeight() / bmp.getWidth();
+                        //imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
                     }
                     RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
                             LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中

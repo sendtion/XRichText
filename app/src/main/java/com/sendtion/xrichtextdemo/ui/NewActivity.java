@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.ielse.imagewatcher.ImageWatcherHelper;
 import com.sendtion.xrichtext.RichTextEditor;
 import com.sendtion.xrichtextdemo.R;
 import com.sendtion.xrichtextdemo.bean.Group;
@@ -31,6 +32,7 @@ import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.MimeType;
 import com.zhihu.matisse.internal.entity.CaptureStrategy;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -70,6 +72,7 @@ public class NewActivity extends BaseActivity {
     private int screenHeight;
     private Disposable subsLoading;
     private Disposable subsInsert;
+    private ImageWatcherHelper iwHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -93,6 +96,8 @@ public class NewActivity extends BaseActivity {
                 dealwithExit();
             }
         });
+
+        iwHelper = ImageWatcherHelper.with(this, new GlideSimpleLoader());
 
         groupDao = new GroupDao(this);
         noteDao = new NoteDao(this);
@@ -180,7 +185,7 @@ public class NewActivity extends BaseActivity {
         // 图片点击事件
         et_new_content.setOnRtImageClickListener(new RichTextEditor.OnRtImageClickListener() {
             @Override
-            public void onRtImageClick(String imagePath) {
+            public void onRtImageClick(View view, String imagePath) {
                 try {
                     myContent = getEditData();
                     if (!TextUtils.isEmpty(myContent)){
@@ -188,6 +193,12 @@ public class NewActivity extends BaseActivity {
                         if (!TextUtils.isEmpty(imagePath)) {
                             int currentPosition = imageList.indexOf(imagePath);
                             showToast("点击图片：" + currentPosition + "：" + imagePath);
+
+                            List<Uri> dataList = new ArrayList<>();
+                            for (int i = 0; i < imageList.size(); i++) {
+                                dataList.add(ImageUtils.getUriFromPath(imageList.get(i)));
+                            }
+                            iwHelper.show(dataList, currentPosition);
                         }
                     }
                 } catch (Exception e) {
@@ -567,6 +578,9 @@ public class NewActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
+        if (!iwHelper.handleBackPressed()) {
+            super.onBackPressed();
+        }
         dealwithExit();
     }
 

@@ -2,6 +2,7 @@ package com.sendtion.xrichtextdemo.ui;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -12,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.github.ielse.imagewatcher.ImageWatcherHelper;
 import com.sendtion.xrichtext.RichTextView;
 import com.sendtion.xrichtextdemo.R;
 import com.sendtion.xrichtextdemo.bean.Group;
@@ -19,6 +21,7 @@ import com.sendtion.xrichtextdemo.bean.Note;
 import com.sendtion.xrichtextdemo.db.GroupDao;
 import com.sendtion.xrichtextdemo.db.NoteDao;
 import com.sendtion.xrichtextdemo.util.CommonUtil;
+import com.sendtion.xrichtextdemo.util.ImageUtils;
 import com.sendtion.xrichtextdemo.util.StringUtils;
 
 import java.util.ArrayList;
@@ -52,6 +55,7 @@ public class NoteActivity extends BaseActivity {
 
     private ProgressDialog loadingDialog;
     private Disposable mDisposable;
+    private ImageWatcherHelper iwHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +89,8 @@ public class NoteActivity extends BaseActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        iwHelper = ImageWatcherHelper.with(this, new GlideSimpleLoader());
 
         noteDao = new NoteDao(this);
         groupDao = new GroupDao(this);
@@ -137,21 +143,20 @@ public class NoteActivity extends BaseActivity {
         // 图片点击事件
         tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListener() {
             @Override
-            public void onRtImageClick(String imagePath) {
+            public void onRtImageClick(View view, String imagePath) {
                 try {
                     ArrayList<String> imageList = StringUtils.getTextFromHtml(myContent, true);
                     int currentPosition = imageList.indexOf(imagePath);
                     showToast("点击图片："+currentPosition+"："+imagePath);
+
+                    List<Uri> dataList = new ArrayList<>();
+                    for (int i = 0; i < imageList.size(); i++) {
+                        dataList.add(ImageUtils.getUriFromPath(imageList.get(i)));
+                    }
+                    iwHelper.show(dataList, currentPosition);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-                //点击图片预览
-//                PhotoPreview.builder()
-//                        .setPhotos(imageList)
-//                        .setCurrentItem(currentPosition)
-//                        .setShowDeleteButton(false)
-//                        .start(NoteActivity.this);
             }
         });
     }
@@ -271,6 +276,9 @@ public class NoteActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
+        if (!iwHelper.handleBackPressed()) {
+            super.onBackPressed();
+        }
         finish();
     }
 }

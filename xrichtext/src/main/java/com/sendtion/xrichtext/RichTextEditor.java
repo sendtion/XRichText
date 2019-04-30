@@ -138,7 +138,7 @@ public class RichTextEditor extends ScrollView {
 					//onImageClick(imageView);
                     // 开放图片点击接口
 					if (onRtImageClickListener != null){
-						onRtImageClickListener.onRtImageClick(imageView.getAbsolutePath());
+						onRtImageClickListener.onRtImageClick(imageView, imageView.getAbsolutePath());
 					}
 				} else if (v instanceof ImageView){
 					//Toast.makeText(getContext(),"点击关闭",Toast.LENGTH_SHORT).show();
@@ -221,7 +221,7 @@ public class RichTextEditor extends ScrollView {
 	}
 
 	public interface OnRtImageClickListener{
-		void onRtImageClick(String imagePath);
+		void onRtImageClick(View view, String imagePath);
 	}
 
 	public void setOnRtImageClickListener(OnRtImageClickListener onRtImageClickListener) {
@@ -476,7 +476,9 @@ public class RichTextEditor extends ScrollView {
 			if (rtImageHeight > 0) {
 				imageHeight = rtImageHeight;
 			} else {
-				imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+				int layoutWidth = allLayout.getWidth() - allLayout.getPaddingLeft() - allLayout.getPaddingRight();
+				imageHeight = layoutWidth * bmp.getHeight() / bmp.getWidth();
+				//imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
 			}
 			//int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
 			RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
@@ -518,41 +520,15 @@ public class RichTextEditor extends ScrollView {
 			final DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
 			imageView.setAbsolutePath(imagePath);
 
-			//如果是网络图片
-//			if (imagePath.startsWith("http://") || imagePath.startsWith("https://")){
-//
-//				// 调整imageView的高度，根据宽度等比获得高度
-//				//int imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
-//				RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-//						LayoutParams.MATCH_PARENT, 500);//固定图片高度，记得设置裁剪剧中
-//				lp.bottomMargin = 10;
-//				imageView.setLayoutParams(lp);
-//
-//				GlideApp.with(getContext()).load(imagePath).centerCrop()
-//						.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail)
-//						.override(Target.SIZE_ORIGINAL, 500).into(imageView);
-//
-//			} else { //如果是本地图片
-//
-//				// 调整imageView的高度，根据宽度等比获得高度
-//				//Bitmap bmp = BitmapFactory.decodeFile(imagePath);
-//				//int imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
-//				RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-//						LayoutParams.MATCH_PARENT, 500);//固定图片高度，记得设置裁剪剧中
-//				lp.bottomMargin = 10;
-//				imageView.setLayoutParams(lp);
-//
-//				GlideApp.with(getContext()).load(imagePath).centerCrop()
-//						.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
-//			}
-
 			// 调整imageView的高度，根据宽度等比获得高度
 			int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
 			if (rtImageHeight > 0) {
 				imageHeight = rtImageHeight;
 			} else {
 				Bitmap bmp = BitmapFactory.decodeFile(imagePath);
-				imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
+				int layoutWidth = allLayout.getWidth() - allLayout.getPaddingLeft() - allLayout.getPaddingRight();
+				imageHeight = layoutWidth * bmp.getHeight() / bmp.getWidth();
+				//imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
 			}
 			RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
 					LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
