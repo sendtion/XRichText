@@ -19,7 +19,7 @@
 
 ## 截图预览
 
-![笔记列表](https://tva1.sinaimg.cn/large/006y8mN6ly1g81jpt15mlj30u01hcdid.jpg)
+![笔记列表](https://tva1.sinaimg.cn/large/006y8mN6ly1g81jyaviylj30u01hcdid.jpg)
 ![文字笔记详情](https://tva1.sinaimg.cn/large/006y8mN6ly1g81jn373lwj30u01hc7a8.jpg)
 ![编辑笔记](https://tva1.sinaimg.cn/large/006y8mN6ly1g81jpvrnwvj30u01hcb29.jpg)
 ![图片笔记详情](https://tva1.sinaimg.cn/large/006y8mN6ly1g81js6ma28j30u01hc4qp.jpg)
