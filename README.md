@@ -19,11 +19,11 @@
 
 ## 截图预览
 
-![笔记列表](http://p695w3yko.bkt.clouddn.com/18-4-5/19166796.jpg?imageMogr2/thumbnail/!35p)
+![笔记列表](https://upload-images.jianshu.io/upload_images/1970367-7883c36f37bb04e0?imageMogr2/auto-orient/strip|imageView2/2/w/480/format/webp)
 ![文字笔记详情](http://p695w3yko.bkt.clouddn.com/18-4-5/57787376.jpg?imageMogr2/thumbnail/!35p)
 ![连续插入多图](http://p695w3yko.bkt.clouddn.com/18-4-5/72572379.jpg?imageMogr2/thumbnail/!35p)
-![编辑笔记](http://p695w3yko.bkt.clouddn.com/18-4-5/55920273.jpg?imageMogr2/thumbnail/!35p)
-![图片笔记详情](http://p695w3yko.bkt.clouddn.com/18-4-5/78527283.jpg?imageMogr2/thumbnail/!35p)
+![编辑笔记](https://upload-images.jianshu.io/upload_images/1970367-bd1c5f7688ad3d87?imageMogr2/auto-orient/strip|imageView2/2/w/480/format/webp)
+![图片笔记详情](https://upload-images.jianshu.io/upload_images/1970367-4c39bc0d907a2108?imageMogr2/auto-orient/strip|imageView2/2/w/480/format/webp)
 
 ## 使用方式
 #### 1. 作为module导入
