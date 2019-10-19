@@ -2,6 +2,7 @@ package com.sendtion.xrichtextdemo.ui;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -12,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
 
+import com.github.ielse.imagewatcher.ImageWatcherHelper;
 import com.sendtion.xrichtext.RichTextView;
 import com.sendtion.xrichtextdemo.R;
 import com.sendtion.xrichtextdemo.bean.Group;
@@ -19,9 +21,8 @@ import com.sendtion.xrichtextdemo.bean.Note;
 import com.sendtion.xrichtextdemo.db.GroupDao;
 import com.sendtion.xrichtextdemo.db.NoteDao;
 import com.sendtion.xrichtextdemo.util.CommonUtil;
+import com.sendtion.xrichtextdemo.util.ImageUtils;
 import com.sendtion.xrichtextdemo.util.StringUtils;
-
-import org.reactivestreams.Subscription;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +55,7 @@ public class NoteActivity extends BaseActivity {
 
     private ProgressDialog loadingDialog;
     private Disposable mDisposable;
+    private ImageWatcherHelper iwHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +90,8 @@ public class NoteActivity extends BaseActivity {
             }
         });
 
+        iwHelper = ImageWatcherHelper.with(this, new GlideSimpleLoader());
+
         noteDao = new NoteDao(this);
         groupDao = new GroupDao(this);
 
@@ -102,27 +106,31 @@ public class NoteActivity extends BaseActivity {
         tv_note_time = (TextView) findViewById(R.id.tv_note_time);
         tv_note_group = (TextView) findViewById(R.id.tv_note_group);
 
-        Intent intent = getIntent();
-        Bundle bundle = intent.getBundleExtra("data");
-        note = (Note) bundle.getSerializable("note");
+        try {
+            Intent intent = getIntent();
+            Bundle bundle = intent.getBundleExtra("data");
+            note = (Note) bundle.getSerializable("note");
 
-        if (note != null) {
-            myTitle = note.getTitle();
-            myContent = note.getContent();
-            Group group = groupDao.queryGroupById(note.getGroupId());
-            if (group != null) {
-                myGroupName = group.getName();
-                tv_note_group.setText(myGroupName);
-            }
-
-            tv_note_title.setText(myTitle);
-            tv_note_content.post(new Runnable() {
-                @Override
-                public void run() {
-                    dealWithContent();
+            if (note != null) {
+                myTitle = note.getTitle();
+                myContent = note.getContent();
+                Group group = groupDao.queryGroupById(note.getGroupId());
+                if (group != null) {
+                    myGroupName = group.getName();
+                    tv_note_group.setText(myGroupName);
                 }
-            });
-            tv_note_time.setText(note.getCreateTime());
+
+                tv_note_title.setText(myTitle);
+                tv_note_content.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        dealWithContent();
+                    }
+                });
+                tv_note_time.setText(note.getCreateTime());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }
@@ -135,17 +143,20 @@ public class NoteActivity extends BaseActivity {
         // 图片点击事件
         tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListener() {
             @Override
-            public void onRtImageClick(String imagePath) {
-                ArrayList<String> imageList = StringUtils.getTextFromHtml(myContent, true);
-                int currentPosition = imageList.indexOf(imagePath);
-                showToast("点击图片："+currentPosition+"："+imagePath);
+            public void onRtImageClick(View view, String imagePath) {
+                try {
+                    ArrayList<String> imageList = StringUtils.getTextFromHtml(myContent, true);
+                    int currentPosition = imageList.indexOf(imagePath);
+                    showToast("点击图片："+currentPosition+"："+imagePath);
 
-                //点击图片预览
-//                PhotoPreview.builder()
-//                        .setPhotos(imageList)
-//                        .setCurrentItem(currentPosition)
-//                        .setShowDeleteButton(false)
-//                        .start(NoteActivity.this);
+                    List<Uri> dataList = new ArrayList<>();
+                    for (int i = 0; i < imageList.size(); i++) {
+                        dataList.add(ImageUtils.getUriFromPath(imageList.get(i)));
+                    }
+                    iwHelper.show(dataList, currentPosition);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         });
     }
@@ -189,14 +200,18 @@ public class NoteActivity extends BaseActivity {
 
             @Override
             public void onNext(String text) {
-                if (tv_note_content !=null) {
-                    if (text.contains("<img") && text.contains("src=")) {
-                        //imagePath可能是本地路径，也可能是网络地址
-                        String imagePath = StringUtils.getImgSrc(text);
-                        tv_note_content.addImageViewAtIndex(tv_note_content.getLastIndex(), imagePath);
-                    } else {
-                        tv_note_content.addTextViewAtIndex(tv_note_content.getLastIndex(), text);
+                try {
+                    if (tv_note_content !=null) {
+                        if (text.contains("<img") && text.contains("src=")) {
+                            //imagePath可能是本地路径，也可能是网络地址
+                            String imagePath = StringUtils.getImgSrc(text);
+                            tv_note_content.addImageViewAtIndex(tv_note_content.getLastIndex(), imagePath);
+                        } else {
+                            tv_note_content.addTextViewAtIndex(tv_note_content.getLastIndex(), text);
+                        }
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         });
@@ -261,6 +276,9 @@ public class NoteActivity extends BaseActivity {
 
     @Override
     public void onBackPressed() {
+        if (!iwHelper.handleBackPressed()) {
+            super.onBackPressed();
+        }
         finish();
     }
 }

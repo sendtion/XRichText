@@ -8,7 +8,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <!--解决项目minSDK与第三方库minSDK不一致情况-->
-    <uses-sdk tools:overrideLibrary="com.simple.spiderman"/>
+    <uses-sdk tools:overrideLibrary="com.github.ielse.imagewatcher"/>
 
     <application
         android:name=".MyApplication"

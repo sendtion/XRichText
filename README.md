@@ -9,21 +9,20 @@
 - 生成的数据为list集合，可自定义处理数据格式。
 
 ### 注意事项
-- xrichtext库中引入了Glide库版本为4.7.1，自己项目中不需要再引入，如果想引入自己的项目，请把Glide排除在外，AppCompat支持库同样也可以排除。
-- Demo中图片选择器更换为知乎开源库Matisse，适配Android 7.0系统使用FileProvider获取图片路径。
-- 开发环境更新为 AS 3.1.2 + Gradle 4.4 + compileSDK 27 + support library 27.1.1，导入项目报版本错误时，请手动修改为自己的版本。
+- xrichtext库中引入了Glide库版本为4.9.0，自己项目中不需要再引入，如果想引入自己的项目，请把Glide排除在外，support支持库同样也可以排除。
+- Demo中图片选择器为知乎开源库Matisse，适配Android 7.0系统使用FileProvider获取图片路径。
+- 开发环境更新为 AS 3.1.2 + Gradle 4.4 + compileSDK 28 + support library 28.0.0，导入项目报版本错误时，请手动修改为自己的版本。
 - **V1.4版本开放了编辑笔记时的删除图片接口，请自己在Activity中设置OnRtDeleteImageListener接口。**
 - **V1.6版本升级RxJava到2.2.3版本，RxAndroid到2.1.0版本。设置字体大小时需要带着单位，如app:rt_editor_text_size="16sp"。**
 - 请参考Demo的实现，进行了解本库。可以使用Gradle引入，也可以下载源码进行修改。
-- 如有问题，欢迎提出。可以加我QQ：524100248，微信：sendtion
+- 如有问题，欢迎提出。**欢迎加入QQ群交流：745215148。**
 
 ## 截图预览
 
-![笔记列表](http://p695w3yko.bkt.clouddn.com/18-4-5/19166796.jpg?imageMogr2/thumbnail/!35p)
-![文字笔记详情](http://p695w3yko.bkt.clouddn.com/18-4-5/57787376.jpg?imageMogr2/thumbnail/!35p)
-![连续插入多图](http://p695w3yko.bkt.clouddn.com/18-4-5/72572379.jpg?imageMogr2/thumbnail/!35p)
-![编辑笔记](http://p695w3yko.bkt.clouddn.com/18-4-5/55920273.jpg?imageMogr2/thumbnail/!35p)
-![图片笔记详情](http://p695w3yko.bkt.clouddn.com/18-4-5/78527283.jpg?imageMogr2/thumbnail/!35p)
+![笔记列表](https://tva1.sinaimg.cn/large/006y8mN6ly1g81jyaviylj30u01hcdid.jpg)
+![文字笔记详情](https://tva1.sinaimg.cn/large/006y8mN6ly1g81jn373lwj30u01hc7a8.jpg)
+![编辑笔记](https://tva1.sinaimg.cn/large/006y8mN6ly1g81jpvrnwvj30u01hcb29.jpg)
+![图片笔记详情](https://tva1.sinaimg.cn/large/006y8mN6ly1g81js6ma28j30u01hc4qp.jpg)
 
 ## 使用方式
 #### 1. 作为module导入
@@ -40,17 +39,17 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.sendtion:XRichText:1.8'
+    implementation 'com.github.sendtion:XRichText:1.9.1'
 }
 ```
 
-如果出现support版本不一致问题，请排除XRichText中的support库，或者升级自己的support库为27.1.1版本。
-Glide版本为4.7.1，依赖于27版本库，如果你用的为低版本，同样的处理方式。
+如果出现support版本不一致问题，请排除XRichText中的support库，或者升级自己的support库为28.0.0版本。
+Glide版本为4.9.0，依赖于28版本库，如果你用的为低版本，同样的处理方式。
 使用方式：
 ```
-implementation ('com.github.sendtion:XRichText:1.8') {
+implementation ('com.github.sendtion:XRichText:1.9.1') {
     exclude group: 'com.android.support'
-    exclude group: 'com.github.bumptech.glide'
+    exclude group: 'com.github.bumptech.glide' //当你的项目使用Glide4.0以下版本时建议添加此项
 }
 ```
 
@@ -170,6 +169,17 @@ tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListene
 ### 具体的使用方式，请参考Demo代码。
 
 ### 更新历史
+
+###  v1.9.1  2019.04.30
+- 图片点击事件接口返回点击的View
+- 修复图片显示时高度拉伸变形问题
+- Demo中实现了点击图片放大浏览功能
+- Support支持库升级为28.0.0
+
+###  v1.9.0  2019.04.10
+- 编辑时支持关键词高亮
+- 修复插入图片时空指针异常
+- 代码异常处理
 
 #### v1.8  2018.12.02
 - 修复编辑时设置文字颜色无效的问题
