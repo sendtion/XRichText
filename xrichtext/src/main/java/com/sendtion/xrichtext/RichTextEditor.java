@@ -31,8 +31,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-//import com.bumptech.glide.request.animation.GlideAnimation;
-
 /**
  * Created by sendtion on 2016/6/24.
  *
@@ -258,28 +256,6 @@ public class RichTextEditor extends ScrollView {
 	}
 
 	/**
-	 * 处理图片点击事件
-     */
-	private void onImageClick(DataImageView imageView) {
-		//int currentItem = imagePaths.indexOf(imageView.getAbsolutePath());
-//		disappearingImageIndex = allLayout.indexOfChild(imageView);
-//		//根据点击的view所在位置获取到图片地址
-//		List<EditData> dataList = buildEditData();
-//		EditData editData = dataList.get(disappearingImageIndex);
-//		//Log.i("", "###editData: "+editData);
-//		if (editData.imagePath != null){
-//			currentItem = imagePaths.indexOf(editData.imagePath);
-//		}
-
-		//点击图片预览
-//		PhotoPreview.builder()
-//				.setPhotos(imagePaths)
-//				.setCurrentItem(currentItem)
-//				.setShowDeleteButton(false)
-//				.start(activity);
-	}
-
-	/**
 	 * 清空所有布局
 	 */
 	public void clearAllLayout(){
@@ -290,8 +266,8 @@ public class RichTextEditor extends ScrollView {
 	 * 获取索引位置
      */
 	public int getLastIndex(){
-		int lastEditIndex = allLayout.getChildCount();
-		return lastEditIndex;
+		int childCount = allLayout.getChildCount();
+		return childCount;
 	}
 
 	/**
@@ -465,11 +441,11 @@ public class RichTextEditor extends ScrollView {
 		}
 		try {
 			imagePaths.add(imagePath);
-			RelativeLayout imageLayout = createImageLayout();
-			DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
-			GlideApp.with(getContext()).load(imagePath).centerCrop().into(imageView);
+			final RelativeLayout imageLayout = createImageLayout();
+			DataImageView imageView = imageLayout.findViewById(R.id.edit_imageView);
 			imageView.setAbsolutePath(imagePath);
 			imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);//裁剪剧中
+			XRichText.getInstance().loadImage(imagePath, imageView, true);
 
 			// 调整imageView的高度，根据宽度等比获得高度
 			int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
@@ -487,11 +463,9 @@ public class RichTextEditor extends ScrollView {
 			imageView.setLayoutParams(lp);
 
 			if (rtImageHeight > 0){
-				GlideApp.with(getContext()).load(imagePath).centerCrop()
-						.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+				XRichText.getInstance().loadImage(imagePath, imageView, true);
 			} else {
-				GlideApp.with(getContext()).load(imagePath)
-						.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+				XRichText.getInstance().loadImage(imagePath, imageView, false);
 			}
 
 			// onActivityResult无法触发动画，此处post处理
@@ -516,9 +490,11 @@ public class RichTextEditor extends ScrollView {
 		}
 		try {
 			imagePaths.add(imagePath);
-			RelativeLayout imageLayout = createImageLayout();
-			final DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
+			final RelativeLayout imageLayout = createImageLayout();
+			DataImageView imageView = imageLayout.findViewById(R.id.edit_imageView);
 			imageView.setAbsolutePath(imagePath);
+			imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);//裁剪剧中
+			XRichText.getInstance().loadImage(imagePath, imageView, true);
 
 			// 调整imageView的高度，根据宽度等比获得高度
 			int imageHeight ; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
@@ -536,14 +512,19 @@ public class RichTextEditor extends ScrollView {
 			imageView.setLayoutParams(lp);
 
 			if (rtImageHeight > 0){
-				GlideApp.with(getContext()).load(imagePath).centerCrop()
-						.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+				XRichText.getInstance().loadImage(imagePath, imageView, true);
 			} else {
-				GlideApp.with(getContext()).load(imagePath)
-						.placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
+				XRichText.getInstance().loadImage(imagePath, imageView, false);
 			}
+
 			// onActivityResult无法触发动画，此处post处理
 			allLayout.addView(imageLayout, index);
+//			allLayout.postDelayed(new Runnable() {
+//				@Override
+//				public void run() {
+//					allLayout.addView(imageLayout, index);
+//				}
+//			}, 200);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

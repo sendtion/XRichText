@@ -6,8 +6,6 @@ import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
 import android.text.TextUtils;
@@ -18,20 +16,14 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.bumptech.glide.request.target.SimpleTarget;
-import com.bumptech.glide.request.transition.Transition;
-
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-//import com.bumptech.glide.request.animation.GlideAnimation;
 
 /**
  * Created by sendtion on 2016/6/24.
@@ -258,71 +250,13 @@ public class RichTextView extends ScrollView {
         if (imageLayout == null){
             return;
         }
-        final DataImageView imageView = (DataImageView) imageLayout.findViewById(R.id.edit_imageView);
+        final DataImageView imageView = imageLayout.findViewById(R.id.edit_imageView);
         imageView.setAbsolutePath(imagePath);
 
-        //如果是网络图片
-        if (imagePath.startsWith("http")){
-
-            GlideApp.with(getContext()).asBitmap().load(imagePath).dontAnimate()
-                    .into(new SimpleTarget<Bitmap>() {
-                        @Override
-                        public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
-                            try {
-                                //调整imageView的高度，根据宽度等比获得高度
-                                int imageHeight; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
-                                if (rtImageHeight > 0) {
-                                    imageHeight = rtImageHeight;
-                                } else {
-                                    int layoutWidth = allLayout.getWidth() - allLayout.getPaddingLeft() - allLayout.getPaddingRight();
-                                    imageHeight = layoutWidth * resource.getHeight() / resource.getWidth();
-                                    //imageHeight = allLayout.getWidth() * resource.getHeight() / resource.getWidth();
-                                }
-                                RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-                                        LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
-                                lp.bottomMargin = rtImageBottom;
-                                imageView.setLayoutParams(lp);
-
-                                if (rtImageHeight > 0) {
-                                    imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                                } else {
-                                    imageView.setScaleType(ImageView.ScaleType.FIT_XY);
-                                }
-                                imageView.setImageBitmap(resource);
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    });
-        } else { //如果是本地图片
-            try {
-                // 调整imageView的高度，根据宽度等比获得高度
-                Bitmap bmp = BitmapFactory.decodeFile(imagePath);
-                if (bmp != null) {
-                    int imageHeight; //解决连续加载多张图片导致后续图片都跟第一张高度相同的问题
-                    if (rtImageHeight > 0) {
-                        imageHeight = rtImageHeight;
-                    } else {
-                        int layoutWidth = allLayout.getWidth() - allLayout.getPaddingLeft() - allLayout.getPaddingRight();
-                        imageHeight = layoutWidth * bmp.getHeight() / bmp.getWidth();
-                        //imageHeight = allLayout.getWidth() * bmp.getHeight() / bmp.getWidth();
-                    }
-                    RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
-                            LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
-                    lp.bottomMargin = rtImageBottom;
-                    imageView.setLayoutParams(lp);
-
-                    if (rtImageHeight > 0) {
-                        GlideApp.with(getContext()).load(imagePath).centerCrop()
-                                .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
-                    } else {
-                        GlideApp.with(getContext()).load(imagePath)
-                                .placeholder(R.drawable.img_load_fail).error(R.drawable.img_load_fail).into(imageView);
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        if (rtImageHeight > 0) {
+            XRichText.getInstance().loadImage(imagePath, imageView, true);
+        } else {
+            XRichText.getInstance().loadImage(imagePath, imageView, false);
         }
 
         // onActivityResult无法触发动画，此处post处理
@@ -358,7 +292,7 @@ public class RichTextView extends ScrollView {
      */
     private void setupLayoutTransitions() {
         mTransitioner = new LayoutTransition();
-        //allLayout.setLayoutTransition(mTransitioner);
+        allLayout.setLayoutTransition(mTransitioner);
         mTransitioner.addTransitionListener(new LayoutTransition.TransitionListener() {
 
             @Override

@@ -1,4 +1,4 @@
-package com.sendtion.xrichtextdemo.ui;
+package com.sendtion.xrichtextdemo.comm;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;

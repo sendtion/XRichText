@@ -3,8 +3,6 @@ package com.sendtion.xrichtextdemo.ui;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -12,10 +10,15 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 
+import com.bumptech.glide.Glide;
+import com.sendtion.xrichtext.IImageLoader;
+import com.sendtion.xrichtext.XRichText;
 import com.sendtion.xrichtextdemo.R;
 import com.sendtion.xrichtextdemo.adapter.MyNoteListAdapter;
 import com.sendtion.xrichtextdemo.bean.Note;
+import com.sendtion.xrichtextdemo.comm.TransformationScale;
 import com.sendtion.xrichtextdemo.db.NoteDao;
 import com.sendtion.xrichtextdemo.view.SpacesItemDecoration;
 
@@ -29,13 +32,9 @@ import java.util.List;
  */
 
 public class MainActivity extends BaseActivity {
-    private static final String TAG = "MainActivity";
-    private RecyclerView rv_list_main;
     private MyNoteListAdapter mNoteListAdapter;
     private List<Note> noteList;
     private NoteDao noteDao;
-    private int groupId;//分类ID
-    private String groupName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,12 +46,25 @@ public class MainActivity extends BaseActivity {
     }
 
     private void initView() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_main);
+        Toolbar toolbar = findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
+
+        XRichText.getInstance().setImageLoader(new IImageLoader() {
+            @Override
+            public void loadImage(String imagePath, ImageView imageView, boolean centerCrop) {
+                if (centerCrop) {
+                    Glide.with(MainActivity.this).asBitmap().load(imagePath).centerCrop()
+                            .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(imageView);
+                } else {
+                    Glide.with(MainActivity.this).asBitmap().load(imagePath)
+                            .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(new TransformationScale(imageView));
+                }
+            }
+        });
 
         noteDao = new NoteDao(this);
 
-        rv_list_main = (RecyclerView) findViewById(R.id.rv_list_main);
+        RecyclerView rv_list_main = findViewById(R.id.rv_list_main);
         rv_list_main.addItemDecoration(new SpacesItemDecoration(0));//设置item间距
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);//竖向列表
@@ -103,7 +115,7 @@ public class MainActivity extends BaseActivity {
     private void refreshNoteList(){
         if (noteDao == null)
             noteDao = new NoteDao(this);
-        noteList = noteDao.queryNotesAll(groupId);
+        noteList = noteDao.queryNotesAll(0);
         mNoteListAdapter.setmNotes(noteList);
         mNoteListAdapter.notifyDataSetChanged();
     }
@@ -131,7 +143,7 @@ public class MainActivity extends BaseActivity {
         switch (item.getItemId()) {
             case R.id.action_new_note:
                 Intent intent = new Intent(MainActivity.this, NewActivity.class);
-                intent.putExtra("groupName", groupName);
+                intent.putExtra("groupName", "默认笔记");
                 intent.putExtra("flag", 0);
                 startActivity(intent);
                 break;

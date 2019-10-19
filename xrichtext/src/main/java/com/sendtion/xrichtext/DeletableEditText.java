@@ -1,18 +1,18 @@
 package com.sendtion.xrichtext;
 
 import android.content.Context;
+import android.support.v7.widget.AppCompatEditText;
 import android.util.AttributeSet;
 import android.view.KeyEvent;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputConnectionWrapper;
-import android.widget.EditText;
 
 /**
  * 可删除的EditText，主要用途是处理软键盘回删按钮backSpace时回调OnKeyListener
  *
  */
-public class DeletableEditText extends EditText {
+public class DeletableEditText extends AppCompatEditText {
 
     public DeletableEditText(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -34,7 +34,7 @@ public class DeletableEditText extends EditText {
 
     private class DeleteInputConnection extends InputConnectionWrapper {
 
-        public DeleteInputConnection(InputConnection target, boolean mutable) {
+        DeleteInputConnection(InputConnection target, boolean mutable) {
             super(target, mutable);
         }
 

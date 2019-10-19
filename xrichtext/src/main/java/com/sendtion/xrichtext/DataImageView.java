@@ -6,14 +6,14 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
+import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
-import android.widget.ImageView;
 
 /**
  * 自定义ImageView，可以存放Bitmap和Path等信息
  *
  */
-public class DataImageView extends ImageView {
+public class DataImageView extends AppCompatImageView {
 
     private boolean showBorder = false; //是否显示边框
     private int borderColor = Color.GRAY;//边框颜色
@@ -21,6 +21,7 @@ public class DataImageView extends ImageView {
 
     private String absolutePath;
     private Bitmap bitmap;
+    private Paint paint;
 
     public DataImageView(Context context) {
         this(context, null);
@@ -32,6 +33,15 @@ public class DataImageView extends ImageView {
 
     public DataImageView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        initData();
+    }
+
+    private void initData() {
+        //画笔
+        paint = new Paint();
+        paint.setColor(borderColor);//设置颜色
+        paint.setStrokeWidth(borderWidth);//设置画笔的宽度
+        paint.setStyle(Paint.Style.STROKE);//设置画笔的风格-不能设成填充FILL否则看不到图片了
     }
 
     public String getAbsolutePath() {
@@ -40,6 +50,14 @@ public class DataImageView extends ImageView {
 
     public void setAbsolutePath(String absolutePath) {
         this.absolutePath = absolutePath;
+    }
+
+    public boolean isShowBorder() {
+        return showBorder;
+    }
+
+    public void setShowBorder(boolean showBorder) {
+        this.showBorder = showBorder;
     }
 
     public Bitmap getBitmap() {
@@ -76,11 +94,6 @@ public class DataImageView extends ImageView {
             // 这两句可以使底部和右侧边框更大
             //rec.bottom -= 2;
             //rec.right -= 2;
-            //画笔
-            Paint paint = new Paint();
-            paint.setColor(borderColor);//设置颜色
-            paint.setStrokeWidth(borderWidth);//设置画笔的宽度
-            paint.setStyle(Paint.Style.STROKE);//设置画笔的风格-不能设成填充FILL否则看不到图片了
             canvas.drawRect(rec, paint);
         }
     }

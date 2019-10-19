@@ -21,11 +21,12 @@ import com.sendtion.xrichtext.RichTextEditor;
 import com.sendtion.xrichtextdemo.R;
 import com.sendtion.xrichtextdemo.bean.Group;
 import com.sendtion.xrichtextdemo.bean.Note;
+import com.sendtion.xrichtextdemo.comm.GlideSimpleLoader;
 import com.sendtion.xrichtextdemo.db.GroupDao;
 import com.sendtion.xrichtextdemo.db.NoteDao;
 import com.sendtion.xrichtextdemo.util.CommonUtil;
 import com.sendtion.xrichtextdemo.util.ImageUtils;
-import com.sendtion.xrichtextdemo.util.MyGlideEngine;
+import com.sendtion.xrichtextdemo.comm.MyGlideEngine;
 import com.sendtion.xrichtextdemo.util.SDCardUtil;
 import com.sendtion.xrichtextdemo.util.StringUtils;
 import com.zhihu.matisse.Matisse;
@@ -84,7 +85,7 @@ public class NewActivity extends BaseActivity {
     }
 
     private void initView() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_new);
+        Toolbar toolbar = findViewById(R.id.toolbar_new);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -110,10 +111,10 @@ public class NewActivity extends BaseActivity {
         insertDialog.setMessage("正在插入图片...");
         insertDialog.setCanceledOnTouchOutside(false);
 
-        et_new_title = (EditText) findViewById(R.id.et_new_title);
-        et_new_content = (RichTextEditor) findViewById(R.id.et_new_content);
-        tv_new_time = (TextView) findViewById(R.id.tv_new_time);
-        tv_new_group = (TextView) findViewById(R.id.tv_new_group);
+        et_new_title = findViewById(R.id.et_new_title);
+        et_new_content = findViewById(R.id.et_new_content);
+        tv_new_time = findViewById(R.id.tv_new_time);
+        tv_new_group = findViewById(R.id.tv_new_group);
 
         openSoftKeyInput();//打开软键盘显示
 
@@ -241,7 +242,6 @@ public class NewActivity extends BaseActivity {
 
     /**
      * 异步方式显示数据
-     * @param html
      */
     private void showDataSync(final String html){
         Observable.create(new ObservableOnSubscribe<String>() {
@@ -285,6 +285,7 @@ public class NewActivity extends BaseActivity {
                         if (text.contains("<img") && text.contains("src=")) {
                             //imagePath可能是本地路径，也可能是网络地址
                             String imagePath = StringUtils.getImgSrc(text);
+                            //Log.e("---", "###imagePath=" + imagePath);
                             //插入空的EditText，以便在图片前后插入文字
                             et_new_content.addEditTextAtIndex(et_new_content.getLastIndex(), "");
                             et_new_content.addImageViewAtIndex(et_new_content.getLastIndex(), imagePath);
@@ -339,7 +340,7 @@ public class NewActivity extends BaseActivity {
     /**
      * 保存数据,=0销毁当前界面，=1不销毁界面，为了防止在后台时保存笔记并销毁，应该只保存笔记
      */
-    private void saveNoteData(boolean isBackground) throws Exception {
+    private void saveNoteData(boolean isBackground) {
         String noteTitle = et_new_title.getText().toString();
         String noteContent = getEditData();
         String groupName = tv_new_group.getText().toString();

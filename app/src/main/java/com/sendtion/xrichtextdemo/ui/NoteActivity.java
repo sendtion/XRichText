@@ -18,8 +18,8 @@ import com.sendtion.xrichtext.RichTextView;
 import com.sendtion.xrichtextdemo.R;
 import com.sendtion.xrichtextdemo.bean.Group;
 import com.sendtion.xrichtextdemo.bean.Note;
+import com.sendtion.xrichtextdemo.comm.GlideSimpleLoader;
 import com.sendtion.xrichtextdemo.db.GroupDao;
-import com.sendtion.xrichtextdemo.db.NoteDao;
 import com.sendtion.xrichtextdemo.util.CommonUtil;
 import com.sendtion.xrichtextdemo.util.ImageUtils;
 import com.sendtion.xrichtextdemo.util.StringUtils;
@@ -41,17 +41,12 @@ import io.reactivex.schedulers.Schedulers;
 public class NoteActivity extends BaseActivity {
     private static final String TAG = "NoteActivity";
 
-    private TextView tv_note_title;//笔记标题
     private RichTextView tv_note_content;//笔记内容
-    private TextView tv_note_time;//笔记创建时间
-    private TextView tv_note_group;//选择笔记分类
     //private ScrollView scroll_view;
     private Note note;//笔记对象
     private String myTitle;
     private String myContent;
     private String myGroupName;
-    private NoteDao noteDao;
-    private GroupDao groupDao;
 
     private ProgressDialog loadingDialog;
     private Disposable mDisposable;
@@ -67,7 +62,7 @@ public class NoteActivity extends BaseActivity {
     }
 
     private void initView() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_note);
+        Toolbar toolbar = findViewById(R.id.toolbar_note);
         toolbar.setTitle("笔记详情");
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -81,7 +76,7 @@ public class NoteActivity extends BaseActivity {
             }
         });
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab_note);
+        FloatingActionButton fab = findViewById(R.id.fab_note);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -92,19 +87,21 @@ public class NoteActivity extends BaseActivity {
 
         iwHelper = ImageWatcherHelper.with(this, new GlideSimpleLoader());
 
-        noteDao = new NoteDao(this);
-        groupDao = new GroupDao(this);
+        GroupDao groupDao = new GroupDao(this);
 
         loadingDialog = new ProgressDialog(this);
         loadingDialog.setMessage("数据加载中...");
         loadingDialog.setCanceledOnTouchOutside(false);
         loadingDialog.show();
 
-        tv_note_title = (TextView) findViewById(R.id.tv_note_title);//标题
+        //笔记标题
+        TextView tv_note_title = findViewById(R.id.tv_note_title);//标题
         tv_note_title.setTextIsSelectable(true);
-        tv_note_content = (RichTextView) findViewById(R.id.tv_note_content);//内容
-        tv_note_time = (TextView) findViewById(R.id.tv_note_time);
-        tv_note_group = (TextView) findViewById(R.id.tv_note_group);
+        tv_note_content = findViewById(R.id.tv_note_content);//内容
+        //笔记创建时间
+        TextView tv_note_time = findViewById(R.id.tv_note_time);
+        //选择笔记分类
+        TextView tv_note_group = findViewById(R.id.tv_note_group);
 
         try {
             Intent intent = getIntent();
@@ -163,7 +160,6 @@ public class NoteActivity extends BaseActivity {
 
     /**
      * 异步方式显示数据
-     * @param html
      */
     private void showDataSync(final String html){
 
@@ -220,7 +216,6 @@ public class NoteActivity extends BaseActivity {
 
     /**
      * 显示数据
-     * @param html
      */
     private void showEditData(ObservableEmitter<String> emitter, String html) {
         try {
