@@ -9,7 +9,7 @@
 - 生成的数据为list集合，可自定义处理数据格式。
 
 ### 注意事项
-- ～～xrichtext库中引入了Glide库版本为4.9.0，自己项目中不需要再引入，如果想引入自己的项目，请把Glide排除在外，support支持库同样也可以排除。～～
+- xrichtext库中引入了Glide库版本为4.9.0，自己项目中不需要再引入，如果想引入自己的项目，请把Glide排除在外，support支持库同样也可以排除。
 - **V1.9.3版本，xrichtext库中已去掉Glide依赖，开放接口可以自定义图片加载方式。具体使用方式可以参考后面的说明，也可以参考Demo实现。**
 - Demo中图片选择器为知乎开源库Matisse，适配Android 7.0系统使用FileProvider获取图片路径。
 - 开发环境更新为 AS 3.4.2 + Gradle 4.4 + compileSDK 28 + support library 28.0.0，导入项目报版本错误时，请手动修改为自己的版本。
@@ -103,8 +103,10 @@ rt_editor_text_color        文字颜色，使用color资源文件
 rt_editor_text_line_space   字体行距，跟TextView使用一样，比如6dp
 ```
 
-**我把数据保存为了html格式，生成字符串存储到了数据库。**
 ### 生成数据
+
+**我把数据保存为了html格式，生成字符串存储到了数据库。**
+
 ```
 String noteContent = getEditData();
 
@@ -179,7 +181,7 @@ XRichText.getInstance().setImageLoader(new IImageLoader() {
     }
 });
 ```
-** TransformationScale类请参考Demo **
+**TransformationScale类请参考Demo**
 
 
 ### 具体的使用方式，请参考Demo代码。
