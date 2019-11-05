@@ -108,13 +108,6 @@ public class RichTextView extends ScrollView {
                     if (onRtImageClickListener != null){
                         onRtImageClickListener.onRtImageClick(imageView, imageView.getAbsolutePath());
                     }
-
-                    //点击图片预览
-//                    PhotoPreview.builder()
-//                            .setPhotos(imagePaths)
-//                            .setCurrentItem(currentItem)
-//                            .setShowDeleteButton(false)
-//                            .start(activity);
                 }
             }
         };
@@ -253,11 +246,12 @@ public class RichTextView extends ScrollView {
         final DataImageView imageView = imageLayout.findViewById(R.id.edit_imageView);
         imageView.setAbsolutePath(imagePath);
 
-        if (rtImageHeight > 0) {
-            XRichText.getInstance().loadImage(imagePath, imageView, true);
-        } else {
-            XRichText.getInstance().loadImage(imagePath, imageView, false);
-        }
+//        if (rtImageHeight > 0) {
+//            XRichText.getInstance().loadImage(imagePath, imageView, true);
+//        } else {
+//            XRichText.getInstance().loadImage(imagePath, imageView, false);
+//        }
+        XRichText.getInstance().loadImage(imagePath, imageView, rtImageHeight);
 
         // onActivityResult无法触发动画，此处post处理
         allLayout.addView(imageLayout, index);

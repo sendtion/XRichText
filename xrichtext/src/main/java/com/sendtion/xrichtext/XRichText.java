@@ -21,9 +21,9 @@ public class XRichText {
         this.imageLoader = imageLoader;
     }
 
-    public void loadImage(String imagePath, ImageView imageView, boolean centerCrop){
+    public void loadImage(String imagePath, ImageView imageView, int imageHeight){
         if (imageLoader != null){
-            imageLoader.loadImage(imagePath, imageView, centerCrop);
+            imageLoader.loadImage(imagePath, imageView, imageHeight);
         }
     }
 }

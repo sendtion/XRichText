@@ -1,12 +1,31 @@
 package com.sendtion.xrichtextdemo;
 
 import android.app.Application;
+import android.graphics.Bitmap;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
+import android.util.Log;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.integration.okhttp3.OkHttpUrlLoader;
+import com.bumptech.glide.load.model.GlideUrl;
+import com.bumptech.glide.request.target.SimpleTarget;
+import com.bumptech.glide.request.transition.Transition;
+import com.sendtion.xrichtext.IImageLoader;
+import com.sendtion.xrichtext.XRichText;
+import com.sendtion.xrichtextdemo.comm.TransformationScale;
+import com.sendtion.xrichtextdemo.comm.UnsafeOkHttpClient;
 import com.wenming.library.LogReport;
 import com.wenming.library.save.imp.CrashWriter;
-import com.wenming.library.save.imp.LogWriter;
 import com.wenming.library.upload.email.EmailReporter;
 import com.wenming.library.upload.http.HttpReporter;
+
+import java.io.InputStream;
+
+import okhttp3.OkHttpClient;
 
 public class MyApplication extends Application {
 
@@ -22,6 +41,46 @@ public class MyApplication extends Application {
         // 使用以下方法，打印Log的同时，把Log信息保存到本地（保存的时候会附带线程名称，线程id，打印时间），
         // 并且随同崩溃日志一起，发送到特定的邮箱或者服务器上。帮助开发者还原用户的操作路径，更好的分析崩溃产生的原因
         //LogWriter.writeLog("wenming", "打Log测试！！！！");
+
+        XRichText.getInstance().setImageLoader(new IImageLoader() {
+            @Override
+            public void loadImage(final String imagePath, final ImageView imageView, final int imageHeight) {
+                Log.e("---", "imageHeight: "+imageHeight);
+                //如果是网络图片
+                if (imagePath.startsWith("http://") || imagePath.startsWith("https://")){
+                    Glide.with(getApplicationContext()).asBitmap().load(imagePath).dontAnimate()
+                            .into(new SimpleTarget<Bitmap>() {
+                                @Override
+                                public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                                    if (imageHeight > 0) {//固定高度
+                                        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+                                                FrameLayout.LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
+                                        lp.bottomMargin = 10;//图片的底边距
+                                        imageView.setLayoutParams(lp);
+                                        Glide.with(getApplicationContext()).asBitmap().load(imagePath).centerCrop()
+                                                .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(imageView);
+                                    } else {//自适应高度
+                                        Glide.with(getApplicationContext()).asBitmap().load(imagePath)
+                                                .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(new TransformationScale(imageView));
+                                    }
+                                }
+                            });
+                } else { //如果是本地图片
+                    if (imageHeight > 0) {//固定高度
+                        RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+                                FrameLayout.LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
+                        lp.bottomMargin = 10;//图片的底边距
+                        imageView.setLayoutParams(lp);
+
+                        Glide.with(getApplicationContext()).asBitmap().load(imagePath).centerCrop()
+                                .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(imageView);
+                    } else {//自适应高度
+                        Glide.with(getApplicationContext()).asBitmap().load(imagePath)
+                                .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(new TransformationScale(imageView));
+                    }
+                }
+            }
+        });
     }
 
     private void initCrashReport() {

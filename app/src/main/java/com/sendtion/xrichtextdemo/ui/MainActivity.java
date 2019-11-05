@@ -49,19 +49,6 @@ public class MainActivity extends BaseActivity {
         Toolbar toolbar = findViewById(R.id.toolbar_main);
         setSupportActionBar(toolbar);
 
-        XRichText.getInstance().setImageLoader(new IImageLoader() {
-            @Override
-            public void loadImage(String imagePath, ImageView imageView, boolean centerCrop) {
-                if (centerCrop) {
-                    Glide.with(MainActivity.this).asBitmap().load(imagePath).centerCrop()
-                            .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(imageView);
-                } else {
-                    Glide.with(MainActivity.this).asBitmap().load(imagePath)
-                            .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(new TransformationScale(imageView));
-                }
-            }
-        });
-
         noteDao = new NoteDao(this);
 
         RecyclerView rv_list_main = findViewById(R.id.rv_list_main);

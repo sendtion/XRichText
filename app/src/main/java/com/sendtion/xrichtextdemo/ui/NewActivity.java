@@ -485,7 +485,9 @@ public class NewActivity extends BaseActivity {
                     }
 
                     // 测试插入网络图片 http://pics.sc.chinaz.com/files/pic/pic9/201904/zzpic17414.jpg
-                    emitter.onNext("http://pics.sc.chinaz.com/files/pic/pic9/201903/zzpic16838.jpg");
+                    //emitter.onNext("http://pics.sc.chinaz.com/files/pic/pic9/201903/zzpic16838.jpg");
+                    emitter.onNext("http://b.zol-img.com.cn/sjbizhi/images/10/640x1136/1572123845476.jpg");
+                    emitter.onNext("https://img.ivsky.com/img/tupian/pre/201903/24/richu_riluo-013.jpg");
 
                     emitter.onComplete();
                 }catch (Exception e){
@@ -521,7 +523,7 @@ public class NewActivity extends BaseActivity {
 
             @Override
             public void onNext(String imagePath) {
-                et_new_content.insertImage(imagePath, et_new_content.getMeasuredWidth());
+                et_new_content.insertImage(imagePath);
             }
         });
     }
