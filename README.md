@@ -4,17 +4,18 @@
 一个Android富文本类库，支持图文混排，支持编辑和预览，支持插入和删除图片。
 
 ### 实现的原理：
+
 - 使用ScrollView作为最外层布局包含LineaLayout，里面填充TextView和ImageView。
 - 删除的时候，根据光标的位置，删除TextView和ImageView，文本自动合并。
 - 生成的数据为list集合，可自定义处理数据格式。
 
 ### 注意事项
-- xrichtext库中引入了Glide库版本为4.9.0，自己项目中不需要再引入，如果想引入自己的项目，请把Glide排除在外，support支持库同样也可以排除。
-- **V1.9.3版本，xrichtext库中已去掉Glide依赖，开放接口可以自定义图片加载方式。具体使用方式可以参考后面的说明，也可以参考Demo实现。**
+
+- **V1.4版本开放了图片点击事件接口和删除图片接口，具体使用方式可以参考后面的文档说明，也可以参考Demo实现。**
+- **V1.6版本升级RxJava到2.2.3版本，RxAndroid到2.1.0版本。设置字体大小时需要带着单位，如app:rt_editor_text_size="16sp"。**
+- **V1.9.3及后续版本，xrichtext库中已去掉Glide依赖，开放接口可以自定义图片加载器。具体使用方式可以参考后面的文档说明，也可以参考Demo实现。**
 - Demo中图片选择器为知乎开源库Matisse，适配Android 7.0系统使用FileProvider获取图片路径。
 - 开发环境更新为 AS 3.4.2 + Gradle 4.4 + compileSDK 28 + support library 28.0.0，导入项目报版本错误时，请手动修改为自己的版本。
-- **V1.4版本开放了编辑笔记时的删除图片接口，请自己在Activity中设置OnRtDeleteImageListener接口。**
-- **V1.6版本升级RxJava到2.2.3版本，RxAndroid到2.1.0版本。设置字体大小时需要带着单位，如app:rt_editor_text_size="16sp"。**
 - 请参考Demo的实现，进行了解本库。可以使用Gradle引入，也可以下载源码进行修改。
 - 如有问题，欢迎提出。**欢迎加入QQ群交流：745215148。**
 
@@ -40,14 +41,14 @@ allprojects {
 }
 
 dependencies {
-    implementation 'com.github.sendtion:XRichText:1.9.3'
+    implementation 'com.github.sendtion:XRichText:1.9.4'
 }
 ```
 
 如果出现support版本不一致问题，请排除XRichText中的support库，或者升级自己的support库为28.0.0版本。
 使用方式：
 ```
-implementation ('com.github.sendtion:XRichText:1.9.3') {
+implementation ('com.github.sendtion:XRichText:1.9.4') {
     exclude group: 'com.android.support'
 }
 ```
@@ -95,7 +96,7 @@ rt_view_text_line_space     字体行距，跟TextView使用一样，比如6dp
 
 - RichTextEditor
 ```
-rt_editor_image_height      图片高度，默认为500，可以设置为固定数值，如500、800等
+rt_editor_image_height      图片高度，默认为500，可以设置为固定数值，如500、800等，0为自适应高度
 rt_editor_image_bottom      上下两张图片的间隔，默认10
 rt_editor_text_init_hint    默认提示文字，默认为“请输入内容”
 rt_editor_text_size         文字大小，使用sp单位，如16sp
@@ -125,6 +126,7 @@ private String getEditData() {
 ```
 
 ### 显示数据
+
 ```
 et_new_content.post(new Runnable() {
      @Override
@@ -154,7 +156,9 @@ protected void showEditData(String content) {
     }
 }
 ```
+
 ### 图片点击事件
+
 ```
 tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListener() {
     @Override
@@ -166,27 +170,63 @@ tv_note_content.setOnRtImageClickListener(new RichTextView.OnRtImageClickListene
     }
 });
 ```
+
 ### 图片加载器使用
+
+请在Application中设置，经测试在首页初始化会出现问题。Demo仅供参考，具体实现根据您使用的图片加载器而变化。
+
 ```
 XRichText.getInstance().setImageLoader(new IImageLoader() {
     @Override
-    public void loadImage(String imagePath, ImageView imageView, boolean centerCrop) {
-       if (centerCrop) {
-           Glide.with(MainActivity.this).asBitmap().load(imagePath).centerCrop()
-                .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(imageView);
-       } else {
-           Glide.with(MainActivity.this).asBitmap().load(imagePath)
-                .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(new TransformationScale(imageView));
+    public void loadImage(String imagePath, ImageView imageView, int imageHeight) {
+       //如果是网络图片
+       if (imagePath.startsWith("http://") || imagePath.startsWith("https://")){
+           Glide.with(getApplicationContext()).asBitmap().load(imagePath).dontAnimate()
+                   .into(new SimpleTarget<Bitmap>() {
+                       @Override
+                       public void onResourceReady(@NonNull Bitmap resource, @Nullable Transition<? super Bitmap> transition) {
+                           if (imageHeight > 0) {//固定高度
+                               RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+                                       FrameLayout.LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
+                               lp.bottomMargin = 10;//图片的底边距
+                               imageView.setLayoutParams(lp);
+                               Glide.with(getApplicationContext()).asBitmap().load(imagePath).centerCrop()
+                                       .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(imageView);
+                           } else {//自适应高度
+                               Glide.with(getApplicationContext()).asBitmap().load(imagePath)
+                                       .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(new TransformationScale(imageView));
+                           }
+                       }
+                   });
+       } else { //如果是本地图片
+           if (imageHeight > 0) {//固定高度
+               RelativeLayout.LayoutParams lp = new RelativeLayout.LayoutParams(
+                       FrameLayout.LayoutParams.MATCH_PARENT, imageHeight);//固定图片高度，记得设置裁剪剧中
+               lp.bottomMargin = 10;//图片的底边距
+               imageView.setLayoutParams(lp);
+
+               Glide.with(getApplicationContext()).asBitmap().load(imagePath).centerCrop()
+                       .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(imageView);
+           } else {//自适应高度
+               Glide.with(getApplicationContext()).asBitmap().load(imagePath)
+                       .placeholder(R.mipmap.img_load_fail).error(R.mipmap.img_load_fail).into(new TransformationScale(imageView));
+           }
        }
     }
 });
 ```
+
 **TransformationScale类请参考Demo**
 
 
 ### 具体的使用方式，请参考Demo代码。
 
 ### 更新历史
+
+####  v1.9.4  2019.11.05
+- lib，解决网络图片不能自适应高度的问题；
+- demo，提供加载https图片实现方式；
+- demo，XRichText设置图片加载器放置在Application中。
 
 ####  v1.9.3  2019.10.19
 - 去除依赖的Glide，改为接口回调，可使用自定义图片加载器
@@ -264,6 +304,7 @@ XRichText.getInstance().setImageLoader(new IImageLoader() {
 - 欢迎大家fork、star，也欢迎大家参与修改。
 
 ## License
+
 ```
 Copyright 2019 sendtion
 
