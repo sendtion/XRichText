@@ -44,7 +44,7 @@
 
         <!--知乎图片选择器，适配7.0系统-->
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="com.sendtion.matisse.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">

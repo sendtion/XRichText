@@ -2,30 +2,23 @@ package com.sendtion.xrichtextdemo;
 
 import android.app.Application;
 import android.graphics.Bitmap;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.Log;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.integration.okhttp3.OkHttpUrlLoader;
-import com.bumptech.glide.load.model.GlideUrl;
 import com.bumptech.glide.request.target.SimpleTarget;
 import com.bumptech.glide.request.transition.Transition;
 import com.sendtion.xrichtext.IImageLoader;
 import com.sendtion.xrichtext.XRichText;
 import com.sendtion.xrichtextdemo.comm.TransformationScale;
-import com.sendtion.xrichtextdemo.comm.UnsafeOkHttpClient;
 import com.wenming.library.LogReport;
 import com.wenming.library.save.imp.CrashWriter;
 import com.wenming.library.upload.email.EmailReporter;
 import com.wenming.library.upload.http.HttpReporter;
-
-import java.io.InputStream;
-
-import okhttp3.OkHttpClient;
 
 public class MyApplication extends Application {
 
